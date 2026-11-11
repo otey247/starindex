@@ -6,7 +6,7 @@ import { api } from "@/api/client";
 import { useCollections, useRepo, useSettings } from "@/api/queries";
 import type { ResearchCapability, RouteOverride } from "@/api/types";
 import { ModelPicker, ProviderErrorPanel, UsageLine, useCloudGate, useProviderName } from "@/components/ai/ModelControls";
-import { CitedAnswer, EvidenceAside, ReportActions, TraceTimeline, WarningsBlock } from "@/components/ai/ReportView";
+import { CitedAnswer, EvidenceAside, ReportActions, ResearchFacts, TraceTimeline, WarningsBlock } from "@/components/ai/ReportView";
 import { useAiStream } from "@/components/ai/useAiStream";
 import { Button, Chip, ProgressBar, Select, Textarea } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -61,7 +61,7 @@ export default function ResearchPage() {
   const providerName = useProviderName();
 
   const recent = useQuery({ queryKey: ["reports", { kind: "research", limit: 8 }], queryFn: () => api.reports({ kind: "research", limit: 8 }) });
-  const limits = settings.data?.research;
+  const limits = s.status?.limits?.max_tool_calls ? { ...settings.data?.research, ...s.status.limits } as NonNullable<typeof settings.data>["research"] : settings.data?.research;
 
   const run = (routeOverride?: RouteOverride | null) => {
     const q = question.trim();
@@ -271,7 +271,7 @@ export default function ResearchPage() {
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line pb-2.5 text-xs text-fg-3">
               <span className="inline-flex items-center gap-1.5 font-medium text-fg-2">
                 {s.status?.is_cloud ? <Cloud className="size-3.5" /> : <HardDrive className="size-3.5" />}
-                {providerName(s.status?.provider_id) || gate.effective.providerName || "—"}
+                {s.status?.provider_name || providerName(s.status?.provider_id) || gate.effective.providerName || "—"}
               </span>
               {(s.status?.model ?? gate.effective.model) && <span className="mono">{s.status?.model ?? gate.effective.model}</span>}
               <span className="tnum">
@@ -333,6 +333,7 @@ export default function ResearchPage() {
             {s.report && s.phase === "done" && (
               <div className="max-w-[900px]">
                 <WarningsBlock warnings={s.report.warnings} unsupported={s.report.unsupported} />
+                <ResearchFacts data={s.report.data} />
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
                   <ReportActions report={s.report} onChanged={(report) => stream.setState((st) => ({ ...st, report }))} />
                   <Button size="sm" variant="ghost" onClick={() => navigate(`/reports/${s.report!.id}`)}>

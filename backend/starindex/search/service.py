@@ -42,6 +42,11 @@ MATCHES_PER_REPO = 3
 # Relative weights of the four ranked lists in the fusion (multiplied by the user-facing
 # lexical/semantic weights). Chosen on the evaluation set; see docs/EVALUATION.md.
 W_LEX_REPO, W_LEX_CHUNK, W_SEM_REPO, W_SEM_CHUNK = 1.0, 0.5, 1.0, 0.7
+# Reranking blends the cross-encoder order with the fused order (rank-based, k=RERANK_K).
+# The passage shown to the cross-encoder is the repository's own summary (description, topics,
+# language, README opening); "best_chunk" (the top matching passage) measured worse.
+RERANK_WEIGHT, RERANK_FUSED_WEIGHT, RERANK_K = 1.0, 1.0, 20
+RERANK_PASSAGE = "intro"           # intro | best_chunk
 EXPANSIONS = {
     "k8s": "kubernetes", "llm": "language model", "llms": "language models", "rag": "retrieval augmented generation",
     "mcp": "model context protocol", "tts": "text to speech", "stt": "speech to text", "asr": "speech recognition",
@@ -124,13 +129,42 @@ class SearchService:
             chunk_hits = lexical.search_chunks(self.db, q, cf, kinds=kinds, limit=CHUNK_CANDIDATES, strict=False)
         return repo_hits, chunk_hits
 
-    def _semantic_lists(self, text: str, allowed: list[int] | None, kinds: list[str] | None):
+    def _semantic_lists(self, text: str, cf: CompiledFilter, kinds: list[str] | None):
+        """Dense retrieval at repository and passage level, honouring the filters.
+
+        * Nothing restricted: plain nearest-neighbour search; unstarred repositories are dropped afterwards.
+        * Qdrant server: filters are pushed into the engine (indexed payload pre-filtering).
+        * Embedded Qdrant with a selective filter: exact search over the vectors stored in SQLite,
+          because the embedded engine evaluates ID filters point by point.
+        * Embedded Qdrant with a broad filter over a very large index: over-fetch, then filter.
+        """
+        from . import exact
+
         emb = self.ctx.embeddings
         vec = emb.embed_query(text)
         index = self._vectors()
         key = emb.model_key
-        repo_hits = [] if kinds else index.search(index.repos_collection(key), vec, limit=CANDIDATES, repo_ids=allowed)
-        chunk_hits = index.search(index.chunks_collection(key), vec, limit=CHUNK_CANDIDATES, repo_ids=allowed, kinds=kinds)
+        repos_name, chunks_name = index.repos_collection(key), index.chunks_collection(key)
+        allowed = cf.ids(self.db)
+        allowed_set = set(allowed)
+
+        def keep(hits, limit):
+            return [h for h in hits if int(h.payload.get("repo_id", 0)) in allowed_set][:limit]
+
+        if not cf.restricted:
+            repo_hits = [] if kinds else keep(index.search(repos_name, vec, limit=CANDIDATES + 20), CANDIDATES)
+            chunk_hits = keep(index.search(chunks_name, vec, limit=CHUNK_CANDIDATES + 40, kinds=kinds), CHUNK_CANDIDATES)
+            return repo_hits, chunk_hits
+        if not allowed:
+            return [], []
+        if index.mode == "server":
+            repo_hits = [] if kinds else index.search(repos_name, vec, limit=CANDIDATES, repo_ids=allowed)
+            return repo_hits, index.search(chunks_name, vec, limit=CHUNK_CANDIDATES, repo_ids=allowed, kinds=kinds)
+        repo_hits = [] if kinds else exact.search_repos(self.db, key, vec, allowed, CANDIDATES)
+        if exact.count_chunks(self.db, key, allowed, kinds) <= exact.MAX_EXACT_CHUNKS:
+            chunk_hits = exact.search_chunks(self.db, key, vec, allowed, kinds, CHUNK_CANDIDATES)
+        else:
+            chunk_hits = keep(index.search(chunks_name, vec, limit=CHUNK_CANDIDATES * 8, kinds=kinds), CHUNK_CANDIDATES)
         return repo_hits, chunk_hits
 
     # ------------------------------------------------------------------ main entry
@@ -159,13 +193,12 @@ class SearchService:
         if settings.search.query_expansion == "auto" and mode != "semantic":
             self._expand(q)
 
-        allowed: list[int] | None = cf.ids(self.db) if cf.restricted or filters.star_state != "all" else None
         lex_repo, lex_chunk, sem_repo, sem_chunk = [], [], [], []
         if mode in ("keyword", "hybrid"):
             lex_repo, lex_chunk = self._lexical_lists(q, cf, kinds)
         if want_semantic:
             try:
-                sem_repo, sem_chunk = self._semantic_lists(q.text or req.query, allowed, kinds)
+                sem_repo, sem_chunk = self._semantic_lists(q.text or req.query, cf, kinds)
             except (EmbeddingUnavailable, VectorUnavailable) as exc:
                 notices.append(f"Semantic search is unavailable ({exc}). Showing keyword results.")
                 mode = "keyword"
@@ -264,37 +297,51 @@ class SearchService:
                 c.name_match = True
         return cands
 
-    def _passage_text(self, repo_row, cand: Candidate, chunk_text: dict[int, str]) -> str:
-        best = max(cand.chunk_scores.items(), key=lambda kv: kv[1][0])[0] if cand.chunk_scores else None
-        head = f"{repo_row['full_name']}: {repo_row['description'] or ''}"
-        topics = " ".join(loads(repo_row["topics"], [])[:10])
-        body = chunk_text.get(best, "") if best else ""
-        return f"{head}\nTopics: {topics}\n{body}".strip()
-
     def _rerank(self, q: Query, top: list[Candidate]) -> bool:
+        """Reorder the head of the list with the cross-encoder, blended with the fused order."""
         ids = [c.repo_id for c in top]
         rows = {
             r["id"]: r
-            for r in self.db.all(f"SELECT id, full_name, description, topics FROM repos WHERE id IN ({placeholders(len(ids))})", ids)
+            for r in self.db.all(f"SELECT id, full_name, description, topics, language FROM repos WHERE id IN ({placeholders(len(ids))})", ids)
         }
-        best_chunks = [max(c.chunk_scores.items(), key=lambda kv: kv[1][0])[0] for c in top if c.chunk_scores]
-        chunk_text: dict[int, str] = {}
-        if best_chunks:
-            for r in self.db.all(f"SELECT id, content FROM chunks WHERE id IN ({placeholders(len(best_chunks))})", best_chunks):
-                chunk_text[r["id"]] = r["content"]
-        passages = [self._passage_text(rows[c.repo_id], c, chunk_text) if c.repo_id in rows else "" for c in top]
-        scores = self.ctx.reranker.score(q.text or q.raw, passages)
+        body: dict[int, str] = {}
+        if RERANK_PASSAGE == "intro":
+            # What the repository says it is: the opening of its README.
+            for r in self.db.all(
+                f"SELECT repo_id, content FROM chunks WHERE kind='readme' AND ordinal<2 AND repo_id IN ({placeholders(len(ids))}) ORDER BY repo_id, document_id, ordinal",
+                ids,
+            ):
+                body[r["repo_id"]] = (body.get(r["repo_id"], "") + "\n" + r["content"]).strip()
+        else:
+            best = {c.repo_id: max(c.chunk_scores.items(), key=lambda kv: kv[1][0])[0] for c in top if c.chunk_scores}
+            if best:
+                texts = {
+                    r["id"]: r["content"]
+                    for r in self.db.all(f"SELECT id, content FROM chunks WHERE id IN ({placeholders(len(best))})", list(best.values()))
+                }
+                body = {rid: texts.get(cid, "") for rid, cid in best.items()}
+        passages = []
+        for c in top:
+            r = rows.get(c.repo_id)
+            if r is None:
+                passages.append("")
+                continue
+            topics = " ".join(loads(r["topics"], [])[:10])
+            lang = f" Written in {r['language']}." if r["language"] else ""
+            passages.append(f"{r['full_name']}: {r['description'] or ''}{lang}\nTopics: {topics}\n{body.get(c.repo_id, '')}".strip())
+        # Judge against the query as understood (typos corrected), not as typed.
+        query_text = q.text or q.raw
+        for wrong, right in q.corrections.items():
+            query_text = re.sub(rf"\b{re.escape(wrong)}\b", right, query_text, flags=re.IGNORECASE)
+        scores = self.ctx.reranker.score(query_text, passages)
         if scores is None:
             return False
-        # Blend: the cross-encoder reorders the head, fused rank keeps it honest (ties, weak passages).
         order = sorted(range(len(top)), key=lambda i: scores[i], reverse=True)
-        k = 20
-        base = top[0].fused if top else 0.0
+        base = top[0].fused if top else 0.0      # keeps the reranked head above the untouched tail
         for new_rank, i in enumerate(order, start=1):
             c = top[i]
             c.rerank_score = scores[i]
-            fused_rank = i + 1
-            c.fused = base + 1.0 / (k + new_rank) + 0.5 / (k + fused_rank)
+            c.fused = base + RERANK_WEIGHT / (RERANK_K + new_rank) + RERANK_FUSED_WEIGHT / (RERANK_K + i + 1)
         return True
 
     def _apply_priors(self, cands: list[Candidate], settings) -> None:
@@ -553,11 +600,11 @@ class SearchService:
             vec = index.get_vector(name, repo_id)
             if vec is None:
                 return []
-            allowed = [r["id"] for r in self.db.all("SELECT id FROM repos WHERE star_state='starred'")]
-            hits = index.search(name, vec, limit=limit + 1, repo_ids=allowed)
+            starred = {r["id"] for r in self.db.all("SELECT id FROM repos WHERE star_state='starred'")}
+            hits = index.search(name, vec, limit=limit + 25)
         except (VectorUnavailable, EmbeddingUnavailable):
             return []
-        return [(int(h.id), h.score) for h in hits if int(h.id) != repo_id][:limit]
+        return [(int(h.id), h.score) for h in hits if int(h.id) != repo_id and int(h.id) in starred][:limit]
 
 
 def permalink(html_url: str | None, ref: str | None, path: str, start: int | None, end: int | None) -> str | None:

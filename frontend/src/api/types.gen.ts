@@ -3644,6 +3644,11 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** TagRename */
+        TagRename: {
+            /** Name */
+            name: string;
+        };
         /** TagsUpdate */
         TagsUpdate: {
             /** Tags */
@@ -3695,6 +3700,11 @@ export interface components {
              * @default []
              */
             repo_ids: number[];
+            /**
+             * Repo Names
+             * @default []
+             */
+            repo_names: string[];
             /**
              * Summary
              * @default

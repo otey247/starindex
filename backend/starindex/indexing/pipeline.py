@@ -430,7 +430,10 @@ def embed_pending(ctx: AppContext, job: JobHandle | None = None, *, max_batches:
              for r, h in zip(rows, hashes, strict=True)],
         )
         with db.tx() as c:
-            c.executemany("UPDATE chunks SET embedded_model_key=? WHERE id=?", [(model_key, r["id"]) for r in rows])
+            c.executemany(
+                "UPDATE chunks SET embedded_model_key=?, embed_hash=? WHERE id=?",
+                [(model_key, h, r["id"]) for r, h in zip(rows, hashes, strict=True)],
+            )
         done_chunks += len(rows)
         batches += 1
         job.progress(done_chunks, max(total, done_chunks), f"Embedding passages ({done_chunks}/{max(total, done_chunks)})")

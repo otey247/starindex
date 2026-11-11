@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookmarkCheck, BookmarkPlus, Check, CircleDashed, Copy, Download, FolderPlus, ListChecks, Search as SearchIcon, ShieldAlert, Trash2, TriangleAlert, Wrench } from "lucide-react";
+import { BookmarkCheck, BookmarkPlus, Check, CircleDashed, Copy, Download, FolderPlus, ListChecks, Scale, Search as SearchIcon, ShieldAlert, Trash2, TriangleAlert, Wrench } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import { errorMessage } from "@/api/errors";
 import { useCollections } from "@/api/queries";
-import type { Evidence, Report, TraceStep, UnsupportedCitation } from "@/api/types";
+import type { Evidence, Report, ResearchReportData, TraceStep, UnsupportedCitation } from "@/api/types";
 import { EvidenceLegend, EvidenceList } from "@/components/evidence/EvidenceBits";
 import { Markdown } from "@/components/Markdown";
 import { Button, Menu, Tabs, type MenuItem } from "@/components/ui";
@@ -66,12 +66,34 @@ function formatArgs(args: Record<string, unknown>): string {
   return parts.join("  ");
 }
 
-function describeRepos(ids: number[], names: Record<number, string>): string {
-  const known = ids.map((id) => names[id]).filter(Boolean) as string[];
-  const shown = known.slice(0, 4);
-  const rest = ids.length - shown.length;
-  if (shown.length === 0) return `${ids.length} repositor${ids.length === 1 ? "y" : "ies"} examined`;
+function describeRepos(step: TraceStep, names: Record<number, string>): string {
+  const fromStep = (step.repo_names ?? []).filter(Boolean);
+  const known = fromStep.length ? fromStep : (step.repo_ids.map((id) => names[id]).filter(Boolean) as string[]);
+  if (known.length === 0) return `${step.repo_ids.length} repositor${step.repo_ids.length === 1 ? "y" : "ies"} examined`;
+  const shown = known.slice(0, 5);
+  const rest = Math.max(known.length, step.repo_ids.length) - shown.length;
   return `${shown.join(", ")}${rest > 0 ? ` +${rest} more` : ""}`;
+}
+
+/** Tool output can be long (result lists, tables): show the first line, expand on demand. */
+function StepSummary({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const trimmed = text.trim();
+  const lines = trimmed.split("\n");
+  const long = lines.length > 2 || trimmed.length > 220;
+  if (!long) return <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-fg-3">{trimmed}</p>;
+  return (
+    <div className="mt-0.5">
+      {open ? (
+        <pre className="mono max-h-[280px] overflow-auto whitespace-pre-wrap break-words rounded-sm border border-line bg-[#0a0b0c] px-2.5 py-2 text-2xs leading-relaxed text-fg-3">{trimmed}</pre>
+      ) : (
+        <p className="line-clamp-2 text-xs leading-relaxed text-fg-3">{lines[0]}</p>
+      )}
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mt-0.5 cursor-pointer text-2xs text-fg-4 hover:text-fg">
+        {open ? "Hide output" : `Show output (${lines.length} line${lines.length === 1 ? "" : "s"})`}
+      </button>
+    </div>
+  );
 }
 
 /**
@@ -108,13 +130,13 @@ export function TraceTimeline({ steps, live, repoNames = {} }: { steps: TraceSte
                   {Object.keys(step.arguments ?? {}).length > 0 && <span className="text-fg-3">({formatArgs(step.arguments)})</span>}
                 </p>
               )}
-              {step.summary && <p className="mt-0.5 text-xs leading-relaxed text-fg-3">{step.summary}</p>}
+              {step.summary && <StepSummary text={step.summary} />}
               {(step.repo_ids.length > 0 || step.evidence_refs.length > 0) && (
                 <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-fg-4">
                   {step.repo_ids.length > 0 && (
-                    <span className="inline-flex items-center gap-1">
-                      <SearchIcon className="size-2.5" />
-                      {describeRepos(step.repo_ids, repoNames)}
+                    <span className="inline-flex min-w-0 items-start gap-1">
+                      <SearchIcon className="mt-[3px] size-2.5 shrink-0" />
+                      {describeRepos(step, repoNames)}
                     </span>
                   )}
                   {step.evidence_refs.length > 0 && <span className="mono">→ {step.evidence_refs.join(" ")}</span>}
@@ -157,6 +179,76 @@ export function WarningsBlock({ warnings, unsupported }: { warnings: string[]; u
             ))}
           </ul>
         </>
+      )}
+    </section>
+  );
+}
+
+function agingLabel(item: unknown): string {
+  if (typeof item === "string") return item;
+  if (item && typeof item === "object") {
+    const o = item as Record<string, unknown>;
+    const name = String(o.full_name ?? o.repo ?? o.name ?? "");
+    const bits = [o.maintenance, o.reason, o.pushed_at ? `last push ${String(o.pushed_at).slice(0, 10)}` : null, o.alternative ? `consider ${String(o.alternative)}` : null]
+      .filter(Boolean)
+      .map(String);
+    return [name, bits.join(" · ")].filter(Boolean).join(" — ");
+  }
+  return String(item);
+}
+
+/** Licensing, maintenance and limit information the orchestrator derived deterministically. */
+export function ResearchFacts({ data }: { data: Record<string, unknown> }) {
+  const d = data as ResearchReportData;
+  const licenseNotes = Array.isArray(d.license_notes) ? d.license_notes : [];
+  const aging = Array.isArray(d.aging_repositories) ? d.aging_repositories : [];
+  const limits = d.limits;
+  const hit = Array.isArray(d.limits_hit) ? d.limits_hit : d.limits_hit ? [String(d.limits_hit)] : [];
+  if (!licenseNotes.length && !aging.length && !limits && !hit.length) return null;
+  return (
+    <section className="mt-6 flex flex-col gap-5 border-t border-line pt-4" aria-label="Research facts" data-testid="research-facts">
+      {licenseNotes.length > 0 && (
+        <div>
+          <h3 className="label">License notes</h3>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {licenseNotes.map((note, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-fg-2">
+                <Scale className="mt-1 size-3.5 shrink-0 text-fg-3" aria-hidden />
+                {note}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {aging.length > 0 && (
+        <div>
+          <h3 className="label">Aging repositories</h3>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {aging.map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-fg-2">
+                <CircleDashed className="mt-1 size-3.5 shrink-0 text-fg-3" aria-hidden />
+                {agingLabel(item)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {(limits || hit.length > 0) && (
+        <div>
+          <h3 className="label">Run limits</h3>
+          {limits && (
+            <p className="mono mt-1.5 text-xs text-fg-3">
+              {limits.tool_calls_used ?? "?"} / {limits.max_tool_calls ?? "?"} tool calls · {limits.seconds_used !== undefined ? `${Math.round(limits.seconds_used)}s` : "?"} / {limits.max_seconds ?? "?"}s
+              {limits.max_context_chars ? ` · context ≤ ${Math.round(limits.max_context_chars / 1000)}k chars` : ""}
+            </p>
+          )}
+          {hit.length > 0 && (
+            <p className="mt-1 flex items-start gap-2 text-sm text-fg-2">
+              <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-warn" aria-hidden />
+              Stopped at a limit: {hit.join(", ")}. The report covers what was gathered up to that point.
+            </p>
+          )}
+        </div>
       )}
     </section>
   );

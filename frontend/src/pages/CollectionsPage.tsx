@@ -243,8 +243,35 @@ function ReportsTab() {
 }
 
 function TagsTab() {
+  const qc = useQueryClient();
   const tags = useTags();
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [deleting, setDeleting] = useState<{ name: string; count: number } | null>(null);
+  const done = (data: unknown) => {
+    qc.setQueryData(keys.tags, data);
+    invalidateRepoData(qc);
+  };
+  const rename = useMutation({
+    mutationFn: ({ from, to }: { from: string; to: string }) => api.renameTag(from, to),
+    onSuccess: (data, vars) => {
+      done(data);
+      setRenaming(null);
+      toast.success(`Renamed “${vars.from}” to “${vars.to}”.`);
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  });
+  const remove = useMutation({
+    mutationFn: (name: string) => api.deleteTag(name),
+    onSuccess: (data, name) => {
+      done(data);
+      setDeleting(null);
+      toast.success(`Tag “${name}” removed from every repository.`);
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  });
   if (tags.isLoading) return <Skeleton className="mt-6 h-24 w-full" />;
+  if (tags.isError) return <ErrorState className="mt-6" message={errorMessage(tags.error)} onRetry={() => tags.refetch()} />;
   if (!tags.data?.length) {
     return (
       <EmptyState icon={<TagIcon />} title="No tags yet">
@@ -252,17 +279,79 @@ function TagsTab() {
       </EmptyState>
     );
   }
+  const commit = (from: string) => {
+    const to = draft.trim();
+    if (!to || to === from) return setRenaming(null);
+    rename.mutate({ from, to });
+  };
+  const willMerge = renaming !== null && draft.trim() !== renaming && tags.data.some((t) => t.name.toLowerCase() === draft.trim().toLowerCase());
   return (
-    <ul className="mt-3 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
-      {tags.data.map((t) => (
-        <li key={t.name}>
-          <Link to={`/library?tag=${encodeURIComponent(t.name)}`} className="group flex items-baseline justify-between gap-3 border-b border-line py-2">
-            <span className="mono truncate text-sm text-fg group-hover:underline">{t.name}</span>
-            <span className="text-xs text-fg-3 tnum">{t.count}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div className="mt-4">
+      <p className="border-b border-line pb-2.5 text-sm text-fg-3">Rename a tag to tidy up; renaming onto an existing tag merges the two. Deleting a tag only removes the label.</p>
+      <ul className="max-w-[760px]">
+        {tags.data.map((t) => (
+          <li key={t.name} className="group grid grid-cols-[1fr_auto_auto] items-center gap-x-4 border-b border-line py-2" data-testid={`tag-${t.name}`}>
+            {renaming === t.name ? (
+              <form
+                className="flex min-w-0 items-center gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  commit(t.name);
+                }}
+              >
+                <Input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Escape" && setRenaming(null)} aria-label={`New name for ${t.name}`} className="mono !h-7 max-w-[260px] text-xs" />
+                <Button size="sm" variant="primary" type="submit" loading={rename.isPending}>
+                  {willMerge ? "Merge" : "Rename"}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setRenaming(null)}>
+                  Cancel
+                </Button>
+                {willMerge && <span className="truncate text-xs text-fg-3">merges into the existing tag</span>}
+              </form>
+            ) : (
+              <Link to={`/library?tag=${encodeURIComponent(t.name)}`} className="mono min-w-0 truncate text-sm text-fg hover:underline">
+                {t.name}
+              </Link>
+            )}
+            <span className="text-xs text-fg-3 tnum">
+              {t.count} repo{t.count === 1 ? "" : "s"}
+            </span>
+            <span className="flex gap-0.5 opacity-60 group-hover:opacity-100 focus-within:opacity-100">
+              <IconButton
+                label={`Rename ${t.name}`}
+                size="sm"
+                onClick={() => {
+                  setDraft(t.name);
+                  setRenaming(t.name);
+                }}
+              >
+                <Pencil className="size-3.5" />
+              </IconButton>
+              <IconButton label={`Delete ${t.name}`} size="sm" onClick={() => setDeleting(t)}>
+                <Trash2 className="size-3.5" />
+              </IconButton>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Dialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        size="sm"
+        title={`Delete the tag “${deleting?.name ?? ""}”?`}
+        description={`It is removed from ${plural(deleting?.count ?? 0, "repository", "repositories")}. The repositories and their notes are untouched.`}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setDeleting(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" loading={remove.isPending} onClick={() => deleting && remove.mutate(deleting.name)}>
+              Delete tag
+            </Button>
+          </>
+        }
+      />
+    </div>
   );
 }
 

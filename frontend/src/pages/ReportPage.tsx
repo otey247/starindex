@@ -7,7 +7,7 @@ import { ApiError, errorMessage } from "@/api/errors";
 import type { Comparison } from "@/api/types";
 import { CompareTable, SharedLists } from "@/components/ai/CompareTable";
 import { UsageLine } from "@/components/ai/ModelControls";
-import { CitedAnswer, EvidenceAside, ReportActions, WarningsBlock } from "@/components/ai/ReportView";
+import { CitedAnswer, EvidenceAside, ReportActions, ResearchFacts, WarningsBlock } from "@/components/ai/ReportView";
 import { RepoTitle } from "@/components/repo/RepoBits";
 import { Button, EmptyState, ErrorState, Skeleton } from "@/components/ui";
 import { formatDateTime } from "@/lib/format";
@@ -114,6 +114,7 @@ export default function ReportPage() {
           ) : null}
           <div className="max-w-[900px]">
             <WarningsBlock warnings={report.warnings} unsupported={report.unsupported} />
+            {report.kind === "research" && <ResearchFacts data={report.data} />}
           </div>
           {report.repos.length > 0 && (
             <section className="mt-8 max-w-[900px] border-t border-line pt-4">

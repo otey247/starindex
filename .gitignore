@@ -12,3 +12,5 @@ e2e/playwright-report/
 *.log
 .env
 .DS_Store
+eval/.eval-data/
+.demo-data/

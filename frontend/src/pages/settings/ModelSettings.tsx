@@ -155,9 +155,9 @@ function AddProviderDialog({ open, onClose }: { open: boolean; onClose: () => vo
               </Field>
             );
           })}
-          {template.needs_api_key && (
+          {(template.needs_api_key || template.api_key_optional) && (
             <Field
-              label={`API key${template.api_key_optional ? " (optional)" : ""}`}
+              label={`API key${template.api_key_optional || !template.needs_api_key ? " (optional)" : ""}`}
               htmlFor="prov-key"
               hint="Stored in your operating system's keyring. It is never shown again, sent to the browser or written to logs."
             >
@@ -262,6 +262,15 @@ function ProviderRow({ provider }: { provider: ProviderInfo }) {
               </span>
             )}
             {!provider.enabled && <span className="text-fg-2">disabled</span>}
+            {isPlan && (
+              <span className="text-fg-2">
+                {provider.options?.available
+                  ? `signed in${provider.options.account ? ` as ${String((provider.options.account as { email?: string; label?: string }).email ?? (provider.options.account as { label?: string }).label ?? "")}` : ""}`
+                  : provider.options?.plan_usage_enabled === false && provider.options?.account
+                    ? "plan usage not granted"
+                    : "not signed in"}
+              </span>
+            )}
           </span>
         </button>
         <div className="flex items-center gap-2">
@@ -293,6 +302,7 @@ function ProviderRow({ provider }: { provider: ProviderInfo }) {
         <div className="mb-4 ml-9 grid gap-x-10 gap-y-5 border-l border-line pl-5 md:grid-cols-2 animate-rise">
           {isPlan ? (
             <p className="text-sm text-fg-3 md:col-span-2">
+              {typeof provider.options?.reason === "string" && provider.options.reason ? <span className="mb-1 block text-fg-2">{provider.options.reason}</span> : null}
               Sign-in, accounts and plan usage are managed on the{" "}
               <Link to="/settings/chatgpt" className="link">
                 ChatGPT plan
@@ -391,11 +401,13 @@ function ProviderRow({ provider }: { provider: ProviderInfo }) {
               </div>
             </>
           )}
-          <div className="md:col-span-2">
-            <Button size="sm" variant="ghost" icon={<Trash2 className="size-3.5" />} onClick={() => setConfirmDelete(true)}>
-              Remove provider
-            </Button>
-          </div>
+          {!isPlan && (
+            <div className="md:col-span-2">
+              <Button size="sm" variant="ghost" icon={<Trash2 className="size-3.5" />} onClick={() => setConfirmDelete(true)}>
+                Remove provider
+              </Button>
+            </div>
+          )}
         </div>
       )}
       <Dialog

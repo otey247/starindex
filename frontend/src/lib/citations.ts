@@ -25,12 +25,14 @@ export function linkifyCitations(markdown: string): string {
   return parts
     .map((part, i) => {
       if (i % 2 === 1) return part; // code: leave untouched
-      return part.replace(GROUP, (_all, inner: string) =>
-        inner
-          .split(/\s*[,;]\s*/)
-          .map((ref) => `[${ref}](#cite-${ref})`)
-          .join(""),
-      );
+      return part
+        .replace(GROUP, (_all, inner: string) =>
+          inner
+            .split(/\s*[,;]\s*/)
+            .map((ref) => `[${ref}](#cite-${ref})`)
+            .join(""),
+        )
+        .replace(/\[unverified\](?!\()/gi, "[unverified](#unverified)");
     })
     .join("");
 }
@@ -40,3 +42,6 @@ export function citationRefFromHref(href: string | undefined): string | null {
   const m = /^#cite-(E\d+)$/.exec(href);
   return m ? m[1]! : null;
 }
+
+/** The server marks claims it could not tie to evidence with "[unverified]". */
+export const UNVERIFIED_HREF = "#unverified";

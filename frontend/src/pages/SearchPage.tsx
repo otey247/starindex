@@ -23,7 +23,7 @@ import { RepoRow } from "@/components/repo/RepoRow";
 import { RepoGrid, RepoTable, ResultSkeleton } from "@/components/repo/RepoViews";
 import { FilterSidebar } from "@/components/search/FilterSidebar";
 import { SearchBar, type BarMode, type SearchBarHandle } from "@/components/search/SearchBar";
-import { Button, Chip, Dialog, Drawer, EmptyState, ErrorState, Field, IconButton, Input, Kbd, Menu, Segmented, type MenuItem } from "@/components/ui";
+import { Button, Chip, Dialog, Drawer, EmptyState, ErrorState, Field, IconButton, Input, Kbd, Menu, ProgressBar, Segmented, type MenuItem } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { activeChips, applyChipRemoval, countActiveFilters, filtersReducer, type FilterAction } from "@/lib/filters";
 import { formatMs, formatNumber, timeAgo } from "@/lib/format";
@@ -269,9 +269,10 @@ function ResultHeader({ data }: { data: SearchResponse }) {
     data.mode,
   ];
   if (data.reranked) parts.push("reranked");
-  if (data.embedding_model && data.mode !== "keyword") parts.push(data.embedding_model);
+  // "fastembed:BAAI/bge-small-en-v1.5" -> "bge-small-en-v1.5"
+  if (data.embedding_model && data.mode !== "keyword") parts.push(data.embedding_model.split(/[:/]/).pop() ?? data.embedding_model);
   return (
-    <p className="mono min-w-0 truncate text-xs text-fg-3" data-testid="result-summary">
+    <p className="mono min-w-0 truncate text-xs text-fg-3" data-testid="result-summary" title={data.embedding_model ?? undefined}>
       {parts.join("  ·  ")}
     </p>
   );
@@ -412,7 +413,7 @@ export default function SearchPage() {
               <Button size="sm" className="lg:hidden" icon={<ListFilter className="size-3.5" />} onClick={() => setFiltersOpen(true)}>
                 Filters{activeCount ? ` · ${activeCount}` : ""}
               </Button>
-              <div className="min-w-0 flex-1">{data ? <ResultHeader data={data} /> : <p className="mono text-xs text-fg-4">Searching…</p>}</div>
+              <div className="min-w-0 flex-1">{search.isFetching ? <p className="mono text-xs text-fg-3" role="status">Searching {state.mode}…</p> : data ? <ResultHeader data={data} /> : null}</div>
               <Segmented
                 size="sm"
                 label="Search scope"
@@ -442,6 +443,10 @@ export default function SearchPage() {
                 <Save className="size-3.5" />
               </IconButton>
               <SavedMenu onApply={(partial) => update(partial)} />
+            </div>
+
+            <div className="h-[2px]" aria-hidden>
+              {search.isFetching && <ProgressBar className="!h-[2px] !rounded-none" label="Searching" />}
             </div>
 
             {chips.length > 0 && (

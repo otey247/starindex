@@ -26,15 +26,12 @@ describe("Markdown (untrusted content)", () => {
     expect(screen.getByRole("link", { name: "guide" })).toHaveAttribute("href", "https://github.com/o/r/blob/main/docs/guide.md");
   });
 
-  it("does not fetch remote images unless the reader opts in", () => {
-    const md = "![build status](https://img.shields.io/badge/build-passing-green)";
-    const { container, rerender } = render(<Markdown>{md}</Markdown>);
+  it("never fetches remote images; they become labelled links", () => {
+    const md = "![build status](https://img.shields.io/badge/build-passing-green) ![](https://example.com/diagram.png)";
+    const { container } = render(<Markdown>{md}</Markdown>);
     expect(container.querySelector("img")).toBeNull();
     expect(screen.getByRole("link", { name: /build status/ })).toHaveAttribute("href", "https://img.shields.io/badge/build-passing-green");
-    rerender(<Markdown loadImages>{md}</Markdown>);
-    const img = container.querySelector("img")!;
-    expect(img).toHaveAttribute("referrerpolicy", "no-referrer");
-    expect(img).toHaveAttribute("loading", "lazy");
+    expect(screen.getByRole("link", { name: /^image$/ })).toHaveAttribute("href", "https://example.com/diagram.png");
   });
 
   it("renders [E#] citations as buttons and flags unknown refs", async () => {

@@ -64,6 +64,9 @@ export function Highlighted({ text }: { text: string }): ReactNode {
 export function cleanSnippet(input: string): string {
   return input
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "") // images / badges
+    .replace(/<\/?[a-zA-Z][^>]{0,200}>/g, " ") // inline HTML tags common in READMEs
+    .replace(/\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/gi, "") // GitHub alert markers
+    .replace(/(^|\s)(?:>\s?)+/g, "$1") // blockquote markers
     .replace(/\[([^\]]+)\]\((?:[^)]*)\)/g, "$1") // links -> text
     .replace(/(^|\s)#{1,6}\s+/g, "$1") // heading markers
     .replace(/(\*\*|__)(?=\S)/g, "")

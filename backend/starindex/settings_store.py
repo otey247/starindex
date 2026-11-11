@@ -68,14 +68,14 @@ class RerankSettings(BaseModel):
     enabled: bool = True
     backend: Literal["fastembed", "none"] = "fastembed"
     model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
-    top_n: int = Field(30, ge=5, le=200)
+    top_n: int = Field(20, ge=5, le=200)
 
 
 class SearchSettings(BaseModel):
     default_mode: Literal["keyword", "semantic", "hybrid"] = "hybrid"
     rrf_k: int = Field(60, ge=1, le=500)
     lexical_weight: float = Field(1.0, ge=0, le=5)
-    semantic_weight: float = Field(1.0, ge=0, le=5)
+    semantic_weight: float = Field(1.5, ge=0, le=5)   # measured on the evaluation set (docs/EVALUATION.md)
     # Bounded priors: relevance stays primary. Each is the maximum relative boost.
     popularity_boost: float = Field(0.03, ge=0, le=0.25)
     freshness_boost: float = Field(0.03, ge=0, le=0.25)

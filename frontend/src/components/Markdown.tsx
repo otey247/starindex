@@ -4,9 +4,9 @@
  * - Raw HTML in the source is never executed (react-markdown ignores it; rehype-sanitize
  *   is a second line of defence with the default GitHub-style schema).
  * - Links open in a new tab with rel="noopener noreferrer"; only http(s)/mailto survive.
- * - Remote images are NOT fetched by default: READMEs routinely embed trackers/badges and
- *   the app must work offline. An image renders as a labelled link unless the reader opts
- *   in ("Load images"), in which case it loads lazily with referrerPolicy="no-referrer".
+ * - Remote images are never fetched: READMEs routinely embed trackers and badges, the app
+ *   must work offline, and the server's Content-Security-Policy forbids third-party image
+ *   hosts. An image renders as a labelled link that opens in the browser.
  * - `[E3]`-style citations become chips when `onCite` is supplied.
  */
 import { memo, useMemo, type ReactNode } from "react";
@@ -14,7 +14,7 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import { ImageOff } from "lucide-react";
-import { citationRefFromHref, linkifyCitations } from "@/lib/citations";
+import { citationRefFromHref, linkifyCitations, UNVERIFIED_HREF } from "@/lib/citations";
 import { cn } from "@/lib/cn";
 
 const schema = {
@@ -43,7 +43,6 @@ export interface MarkdownProps {
   compact?: boolean;
   /** Resolve relative links/images against this URL (e.g. the repo's GitHub blob URL). */
   baseUrl?: string;
-  loadImages?: boolean;
   onCite?: (ref: string) => void;
   /** Refs that exist in the evidence list; others render as unverified. */
   knownRefs?: Set<string>;
@@ -55,7 +54,6 @@ export const Markdown = memo(function Markdown({
   className,
   compact,
   baseUrl,
-  loadImages = false,
   onCite,
   knownRefs,
   streaming,
@@ -65,6 +63,13 @@ export const Markdown = memo(function Markdown({
   const components = useMemo<Components>(
     () => ({
       a({ href, children: kids }) {
+        if (href === UNVERIFIED_HREF && onCite) {
+          return (
+            <span className="label mx-0.5 !text-fg-2" title="StarIndex could not tie this statement to indexed evidence." data-testid="unverified-mark">
+              ◌ unverified
+            </span>
+          );
+        }
         const ref = citationRefFromHref(href);
         if (ref && onCite) {
           const known = !knownRefs || knownRefs.has(ref);
@@ -96,9 +101,6 @@ export const Markdown = memo(function Markdown({
       img({ src, alt }) {
         const safe = safeHref(typeof src === "string" ? src : undefined, baseUrl);
         if (!safe) return <span className="text-fg-4">[image{alt ? `: ${alt}` : ""}]</span>;
-        if (loadImages) {
-          return <img src={safe} alt={alt ?? ""} loading="lazy" referrerPolicy="no-referrer" decoding="async" />;
-        }
         return (
           <a
             href={safe}
@@ -116,7 +118,7 @@ export const Markdown = memo(function Markdown({
         return <table>{kids as ReactNode}</table>;
       },
     }),
-    [baseUrl, loadImages, onCite, knownRefs],
+    [baseUrl, onCite, knownRefs],
   );
 
   return (

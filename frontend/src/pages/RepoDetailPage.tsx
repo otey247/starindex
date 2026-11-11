@@ -10,8 +10,6 @@ import {
   Globe,
   Heart,
   History,
-  ImageOff,
-  Images,
   Layers,
   Lightbulb,
   MessagesSquare,
@@ -175,7 +173,6 @@ function AiText({ repo, kind }: { repo: RepoDetail; kind: "summary" | "usage_ide
 // ------------------------------------------------------------------ README
 
 function Readme({ repo }: { repo: RepoDetail }) {
-  const [images, setImages] = useState(false);
   const readme = useQuery({
     queryKey: keys.repoPart(repo.id, "readme"),
     queryFn: () => api.repoReadme(repo.id),
@@ -191,9 +188,6 @@ function Readme({ repo }: { repo: RepoDetail }) {
               {readme.data.path}
               {readme.data.commit_sha ? ` @${shortSha(readme.data.commit_sha)}` : ""} · indexed {timeAgo(readme.data.indexed_at)}
             </span>
-            <IconButton label={images ? "Hide remote images" : "Load remote images (fetches from the internet)"} size="sm" active={images} onClick={() => setImages((v) => !v)}>
-              {images ? <Images className="size-3.5" /> : <ImageOff className="size-3.5" />}
-            </IconButton>
           </>
         )}
       </SectionHeader>
@@ -215,7 +209,7 @@ function Readme({ repo }: { repo: RepoDetail }) {
           )
         ) : readme.data ? (
           <>
-            <Markdown baseUrl={base} loadImages={images}>
+            <Markdown baseUrl={base}>
               {readme.data.content}
             </Markdown>
             {readme.data.truncated && <p className="mt-3 text-xs text-fg-4">This README was truncated at the indexing size limit.</p>}
@@ -371,6 +365,8 @@ function FilesTab({ repo }: { repo: RepoDetail }) {
 function DependenciesTab({ repo }: { repo: RepoDetail }) {
   const navigate = useNavigate();
   const deps = useQuery({ queryKey: keys.repoPart(repo.id, "dependencies"), queryFn: () => api.repoDependencies(repo.id) });
+  const [filter, setFilter] = useState("");
+  const [showAll, setShowAll] = useState(false);
   if (deps.isLoading) return <Skeleton className="mt-4 h-40 w-full" />;
   if (deps.isError) return <ErrorState className="mt-4" message={errorMessage(deps.error)} onRetry={() => deps.refetch()} />;
   if (!deps.data?.length) {
@@ -382,9 +378,24 @@ function DependenciesTab({ repo }: { repo: RepoDetail }) {
     );
   }
   const byEco = new Map<string, Dependency[]>();
-  for (const d of deps.data) byEco.set(d.ecosystem, [...(byEco.get(d.ecosystem) ?? []), d]);
+  const needle = filter.trim().toLowerCase();
+  for (const d of deps.data) {
+    if (needle && !d.name.toLowerCase().includes(needle)) continue;
+    byEco.set(d.ecosystem, [...(byEco.get(d.ecosystem) ?? []), d]);
+  }
+  const CAP = 40;
   return (
     <div className="mt-4 flex flex-col gap-6">
+      {deps.data.length > 15 && (
+        <input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder={`Filter ${deps.data.length} dependencies`}
+          aria-label="Filter dependencies"
+          className="h-7 w-full max-w-[320px] rounded-sm border border-line-strong bg-bg px-2 text-xs text-fg placeholder:text-fg-4 focus:border-accent focus:outline-none"
+        />
+      )}
+      {needle && byEco.size === 0 && <p className="text-sm text-fg-3">No dependency matches “{filter}”.</p>}
       {[...byEco.entries()].map(([eco, list]) => (
         <section key={eco}>
           <SectionHeader title={eco} count={list.length} />
@@ -403,6 +414,7 @@ function DependenciesTab({ repo }: { repo: RepoDetail }) {
                 {list
                   .slice()
                   .sort((a, b) => b.shared_with - a.shared_with || a.name.localeCompare(b.name))
+                  .slice(0, showAll || needle ? undefined : CAP)
                   .map((d) => (
                     <tr key={`${d.name}-${d.manifest_path}-${d.scope}`} className="border-b border-line">
                       <td className="mono py-1.5 pr-4 text-xs text-fg">{d.name}</td>
@@ -428,6 +440,11 @@ function DependenciesTab({ repo }: { repo: RepoDetail }) {
               </tbody>
             </table>
           </div>
+          {!showAll && !needle && list.length > CAP && (
+            <button type="button" onClick={() => setShowAll(true)} className="mt-2 cursor-pointer text-xs text-fg-3 hover:text-fg">
+              Show all {list.length} {eco} dependencies
+            </button>
+          )}
         </section>
       ))}
       <p className="text-xs text-fg-4">Observed directly in indexed manifest files. Transitive dependencies are not resolved.</p>
@@ -806,7 +823,7 @@ export default function RepoDetailPage() {
       </button>
 
       <header className="border-b border-line pb-5 animate-rise">
-        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+        <div className="grid grid-cols-1 items-start gap-x-6 gap-y-3 sm:grid-cols-[minmax(0,1fr)_auto]">
           <div className="min-w-0">
             <h1 className="flex min-w-0 flex-wrap items-baseline text-3xl font-semibold tracking-[-0.02em]">
               <span className="font-normal text-fg-3">{repo.owner}</span>

@@ -3,7 +3,7 @@ import type { StreamEvent, TraceStep } from "@/api/types";
 import { makeEvidence } from "@/test/utils";
 import { IDLE_STREAM, reduceStream } from "./useAiStream";
 
-const step = (index: number, title: string): TraceStep => ({ index, kind: "tool", title, tool: "search_repositories", arguments: {}, summary: "", repo_ids: [], evidence_refs: [], duration_ms: 5, ok: true });
+const step = (index: number, title: string): TraceStep => ({ index, kind: "tool", title, tool: "search_repositories", arguments: {}, summary: "", repo_ids: [], repo_names: [], evidence_refs: [], duration_ms: 5, ok: true });
 const run = (events: StreamEvent[], from = { ...IDLE_STREAM, phase: "running" as const }) => events.reduce(reduceStream, from);
 
 describe("reduceStream", () => {

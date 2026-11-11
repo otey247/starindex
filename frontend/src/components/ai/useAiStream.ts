@@ -14,6 +14,7 @@ import type {
   StatusEvent,
   StreamEvent,
   TraceStep,
+  UsageInfo,
 } from "@/api/types";
 
 export interface AiStreamState {
@@ -29,6 +30,9 @@ export interface AiStreamState {
   alternatives: ProviderOption[];
   reportId: number | null;
   startedAt: number | null;
+  /** Retrieval notices from the server (e.g. "semantic index not ready; used keyword search"). */
+  notices: string[];
+  usage: UsageInfo | null;
 }
 
 export const IDLE_STREAM: AiStreamState = {
@@ -44,13 +48,15 @@ export const IDLE_STREAM: AiStreamState = {
   alternatives: [],
   reportId: null,
   startedAt: null,
+  notices: [],
+  usage: null,
 };
 
 /** Pure reducer so the event handling can be unit-tested without React. */
 export function reduceStream(state: AiStreamState, event: StreamEvent): AiStreamState {
   switch (event.type) {
     case "status":
-      return { ...state, status: { ...state.status, ...event.data } };
+      return { ...state, status: { ...state.status, ...event.data }, reportId: event.data.report_id ?? state.reportId };
     case "plan":
       return { ...state, plan: event.data.steps ?? [] };
     case "step": {
@@ -60,7 +66,8 @@ export function reduceStream(state: AiStreamState, event: StreamEvent): AiStream
     case "evidence": {
       const byRef = new Map(state.evidence.map((e) => [e.ref, e]));
       for (const ev of event.data.evidence ?? []) byRef.set(ev.ref, ev);
-      return { ...state, evidence: [...byRef.values()] };
+      const notices = [...new Set([...state.notices, ...(event.data.notices ?? [])])];
+      return { ...state, evidence: [...byRef.values()], notices };
     }
     case "delta":
       return { ...state, text: state.text + (event.data.text ?? "") };
@@ -76,9 +83,12 @@ export function reduceStream(state: AiStreamState, event: StreamEvent): AiStream
         evidence: report?.evidence?.length ? report.evidence : summary?.evidence?.length ? summary.evidence : state.evidence,
         steps: report?.trace?.length ? report.trace : state.steps,
         reportId: report?.id ?? state.reportId,
+        usage: event.data.usage ?? report?.usage ?? state.usage,
       };
     }
     case "error":
+      // A cancelled run is not a failure: keep what was produced and mark it stopped.
+      if (event.data.error?.kind === "cancelled") return { ...state, phase: "cancelled", reportId: event.data.report_id ?? state.reportId };
       return {
         ...state,
         phase: "error",

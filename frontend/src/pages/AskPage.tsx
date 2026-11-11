@@ -81,7 +81,7 @@ function TurnView({
       {(s.status?.provider_id || running) && (
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-3">
           {s.status?.is_cloud ? <Cloud className="size-3.5" aria-hidden /> : <HardDrive className="size-3.5" aria-hidden />}
-          {s.status?.provider_id && <span className="font-medium text-fg-2">{providerName(s.status.provider_id)}</span>}
+          {s.status?.provider_id && <span className="font-medium text-fg-2">{s.status.provider_name ?? providerName(s.status.provider_id)}</span>}
           {s.status?.model && <span className="mono">{s.status.model}</span>}
           {running && <span>· {s.status?.message ?? "Retrieving evidence…"}</span>}
           {s.phase === "cancelled" && <span>· stopped</span>}
@@ -89,6 +89,11 @@ function TurnView({
       )}
 
       {running && !s.text && <ProgressBar className="mt-3 max-w-[280px]" label="Generating answer" />}
+      {s.notices.map((n) => (
+        <p key={n} className="mt-2 text-xs text-fg-3">
+          {n}
+        </p>
+      ))}
 
       {s.text && (
         <div className="mt-4">

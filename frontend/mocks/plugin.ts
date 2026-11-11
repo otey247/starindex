@@ -930,7 +930,7 @@ on("POST", "/repos/:id/summary", async ({ params, query, body, res }) => {
   const a = resolveRoute(body);
   const stream = sse(res);
   if (!preflight(stream, a, body)) return (stream.end(), STREAMED);
-  stream.send("status", { message: "Reading indexed documentation", provider_id: a.provider_id, provider_kind: a.provider_kind, model: a.model, is_cloud: a.is_cloud });
+  stream.send("status", { message: "Reading indexed documentation", provider_id: a.provider_id, provider_kind: a.provider_kind, provider_name: a.provider_name, model: a.model, is_cloud: a.is_cloud });
   await sleep(350);
   const evidence = gatherEvidence(repo.name, [repo.id], 4);
   stream.send("evidence", { evidence });
@@ -1017,7 +1017,7 @@ on("POST", "/ask", async ({ body, res }) => {
     stream.send("evidence", { evidence });
   }
   if (!preflight(stream, a, body)) return (stream.end(), STREAMED);
-  stream.send("status", { message: "Retrieving evidence", provider_id: a.provider_id, provider_kind: a.provider_kind, model: a.model, is_cloud: a.is_cloud });
+  stream.send("status", { message: "Retrieving evidence", provider_id: a.provider_id, provider_kind: a.provider_kind, provider_name: a.provider_name, model: a.model, is_cloud: a.is_cloud });
   await sleep(380);
   stream.send("evidence", { evidence });
   stream.send("status", { message: "Writing the answer" });
@@ -1035,14 +1035,14 @@ on("POST", "/research", async ({ body, res }) => {
   const stream = sse(res);
   if (!preflight(stream, a, body)) return (stream.end(), STREAMED);
   const question = String(body.question);
-  stream.send("status", { message: "Planning", provider_id: a.provider_id, provider_kind: a.provider_kind, model: a.model, is_cloud: a.is_cloud });
+  stream.send("status", { message: "Planning", provider_id: a.provider_id, provider_kind: a.provider_kind, provider_name: a.provider_name, model: a.model, is_cloud: a.is_cloud });
   await sleep(500);
   const plan = ["Find repositories relevant to each part of the question", "Read the README and documentation passages that describe the relevant capabilities", "Check licenses, maintenance activity and shared dependencies", "Compare the strongest candidates and note gaps", "Write the report with citations"];
   stream.send("plan", { steps: plan });
   const steps: TraceStep[] = [];
   const evidence: Evidence[] = [];
-  const step = async (s: Omit<TraceStep, "index">, delay = 520) => {
-    const full: TraceStep = { ...s, index: steps.length + 1 };
+  const step = async (s: Omit<TraceStep, "index" | "repo_names">, delay = 520) => {
+    const full: TraceStep = { ...s, index: steps.length + 1, repo_names: s.repo_ids.map((id) => state.repos.find((r) => r.id === id)?.full_name ?? String(id)) };
     steps.push(full);
     stream.send("step", full);
     await sleep(delay);
@@ -1200,7 +1200,7 @@ on("POST", "/compare/narrative", async ({ body, res }) => {
   const stream = sse(res);
   if (!preflight(stream, a, body)) return (stream.end(), STREAMED);
   const comparison = buildComparison(body.repo_ids ?? []);
-  stream.send("status", { message: "Reading evidence for each repository", provider_id: a.provider_id, provider_kind: a.provider_kind, model: a.model, is_cloud: a.is_cloud });
+  stream.send("status", { message: "Reading evidence for each repository", provider_id: a.provider_id, provider_kind: a.provider_kind, provider_name: a.provider_name, model: a.model, is_cloud: a.is_cloud });
   await sleep(450);
   stream.send("evidence", { evidence: comparison.evidence });
   const [r1, r2] = comparison.repos as RepoDetail[];
@@ -1318,6 +1318,23 @@ on("GET", "/tags", () => {
   const m = new Map<string, number>();
   for (const r of state.repos) for (const t of r.tags) m.set(t, (m.get(t) ?? 0) + 1);
   return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count }));
+});
+const tagList = () => {
+  const m = new Map<string, number>();
+  for (const r of state.repos) for (const t of r.tags) m.set(t, (m.get(t) ?? 0) + 1);
+  return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count }));
+};
+on("PATCH", "/tags/:name", ({ params, body }) => {
+  const from = decodeURIComponent(params[0]!);
+  const to = String(body.name ?? "").trim();
+  if (!to) throw new HttpError(422, "validation", "A tag name is required.");
+  for (const r of state.repos) if (r.tags.includes(from)) r.tags = [...new Set(r.tags.map((t) => (t === from ? to : t)))];
+  return tagList();
+});
+on("DELETE", "/tags/:name", ({ params }) => {
+  const name = decodeURIComponent(params[0]!);
+  for (const r of state.repos) r.tags = r.tags.filter((t) => t !== name);
+  return tagList();
 });
 on("GET", "/categories", () => state.categories);
 on("POST", "/categories", ({ body }) => {

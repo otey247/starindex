@@ -1,0 +1,15 @@
+{
+  "name": "starindex-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Playwright end-to-end tests for StarIndex against an isolated local instance",
+  "scripts": {
+    "test": "playwright test --trace off",
+    "test:headed": "playwright test --trace off --headed",
+    "test:debug": "playwright test --trace on"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.0.0"
+  }
+}

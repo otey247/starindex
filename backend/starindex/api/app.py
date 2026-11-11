@@ -70,6 +70,10 @@ def create_app(ctx: AppContext | None = None, *, start_worker: bool | None = Non
             with context.db.tx() as c:
                 c.execute("UPDATE jobs SET lease_expires_at='1970-01-01T00:00:00Z' WHERE status='running'")
                 c.execute("UPDATE repos SET index_status='queued' WHERE index_status='indexing'")
+            if context.settings.embedding.backend != "none" and context.db.one(
+                "SELECT 1 FROM chunks WHERE embedded_model_key IS NULL LIMIT 1"
+            ):
+                context.jobs.enqueue("embed_pending", dedupe_key="embed_pending")     # e.g. after an upgrade or restore
             worker = Worker(context, mode="embedded")
             worker.start()
         app.state.worker = worker

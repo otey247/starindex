@@ -242,8 +242,11 @@ export interface StatusEvent {
   message: string;
   provider_id?: string | null;
   provider_kind?: string | null;
+  provider_name?: string | null;
   model?: string | null;
   is_cloud?: boolean;
+  report_id?: number | null;
+  limits?: { max_tool_calls?: number; max_seconds?: number; max_context_chars?: number } | null;
 }
 
 export interface StreamErrorEvent {
@@ -256,10 +259,20 @@ export type StreamEvent =
   | { type: "status"; data: StatusEvent }
   | { type: "plan"; data: { steps: string[] } }
   | { type: "step"; data: TraceStep }
-  | { type: "evidence"; data: { evidence: Evidence[] } }
+  // Research sends evidence incrementally: each event carries only new items.
+  | { type: "evidence"; data: { evidence: Evidence[]; notices?: string[] } }
   | { type: "delta"; data: { text: string } }
-  | { type: "done"; data: { report?: Report; summary?: RepoSummaryText } }
+  | { type: "done"; data: { report?: Report; summary?: RepoSummaryText; usage?: UsageInfo | null } }
   | { type: "error"; data: StreamErrorEvent };
+
+/** Kind-specific payload of a research report (`Report.data`). */
+export interface ResearchReportData {
+  capability?: string;
+  limits?: { max_tool_calls?: number; max_seconds?: number; max_context_chars?: number; tool_calls_used?: number; seconds_used?: number };
+  limits_hit?: string[] | string | boolean | null;
+  license_notes?: string[];
+  aging_repositories?: unknown[];
+}
 
 export const EMPTY_FILTERS: RepoFilters = {
   languages: [],

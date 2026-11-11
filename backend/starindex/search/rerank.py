@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..context import AppContext
 
 log = logging.getLogger(__name__)
-MAX_PASSAGE_CHARS = 1200
+MAX_PASSAGE_CHARS = 700
 
 
 class Reranker:

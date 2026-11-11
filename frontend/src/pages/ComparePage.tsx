@@ -142,7 +142,6 @@ export default function ComparePage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-2 text-xs text-fg-4">Derived from declared SPDX identifiers. This is an observation, not legal advice.</p>
             </section>
           )}
 

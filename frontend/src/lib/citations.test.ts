@@ -19,6 +19,10 @@ describe("citations", () => {
     expect(out).toContain("[E2](#cite-E2)");
   });
 
+  it("marks server-flagged unverified claims", () => {
+    expect(linkifyCitations("Use `evil/backdoor` [unverified]. Fine [E1].")).toBe("Use `evil/backdoor` [unverified](#unverified). Fine [E1](#cite-E1).");
+  });
+
   it("recognises citation hrefs only", () => {
     expect(citationRefFromHref("#cite-E12")).toBe("E12");
     expect(citationRefFromHref("#cite-X")).toBeNull();

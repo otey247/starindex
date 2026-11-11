@@ -1,0 +1,523 @@
+# Search evaluation set for StarIndex.
+#
+# Corpus: the repositories in corpus_repos.txt (real public repositories; metadata + README + one manifest).
+# Judgments: graded by hand from knowledge of what each project is. 2 = directly answers the query,
+# 1 = relevant or a reasonable alternative. Repositories not listed are treated as not relevant.
+# Judged repositories missing from a locally built corpus are ignored (and reported) by run_eval.py.
+#
+# `kind` describes the query style: nl (natural language), keyword, name (exact repository name), typo.
+
+- q: agentic orchestration with MCP support
+  kind: nl
+  relevant:
+    lastmile-ai/mcp-agent: 2
+    langchain-ai/langchain-mcp-adapters: 2
+    mcp-use/mcp-use: 2
+    openai/openai-agents-python: 2
+    pydantic/pydantic-ai: 2
+    mastra-ai/mastra: 2
+    google/adk-python: 2
+    langchain-ai/langgraph: 1
+    crewAIInc/crewAI: 1
+    microsoft/autogen: 1
+    microsoft/semantic-kernel: 1
+    agno-agi/agno: 1
+    huggingface/smolagents: 1
+    VoltAgent/voltagent: 1
+    camel-ai/camel: 1
+    letta-ai/letta: 1
+
+- q: open-source alternatives to Azure API Management
+  kind: nl
+  relevant:
+    Kong/kong: 2
+    apache/apisix: 2
+    TykTechnologies/tyk: 2
+    krakend/krakend-ce: 2
+    gravitee-io/gravitee-api-management: 2
+    wso2/product-apim: 2
+    envoyproxy/gateway: 1
+    luraproject/lura: 1
+    traefik/traefik: 1
+    envoyproxy/envoy: 1
+
+- q: best React component libraries for visually impressive dashboards
+  kind: nl
+  relevant:
+    tremorlabs/tremor: 2
+    shadcn-ui/ui: 2
+    magicuidesign/magicui: 2
+    mantinedev/mantine: 2
+    mui/material-ui: 2
+    ant-design/ant-design: 2
+    refinedev/refine: 2
+    marmelab/react-admin: 2
+    chakra-ui/chakra-ui: 1
+    heroui-inc/heroui: 1
+    recharts/recharts: 1
+    airbnb/visx: 1
+    plouc/nivo: 1
+    tabler/tabler: 1
+    radix-ui/primitives: 1
+    TanStack/table: 1
+    saadeghi/daisyui: 1
+
+- q: repos that generate cinematic animations from code
+  kind: nl
+  relevant:
+    remotion-dev/remotion: 2
+    ManimCommunity/manim: 2
+    3b1b/manim: 2
+    motion-canvas/motion-canvas: 2
+    theatre-js/theatre: 2
+    greensock/GSAP: 1
+    juliangarnier/anime: 1
+    motiondivision/motion: 1
+    airbnb/lottie-web: 1
+    rive-app/rive-wasm: 1
+
+- q: AI governance and observability
+  kind: nl
+  relevant:
+    langfuse/langfuse: 2
+    Arize-ai/phoenix: 2
+    comet-ml/opik: 2
+    Helicone/helicone: 2
+    traceloop/openllmetry: 2
+    AgentOps-AI/agentops: 2
+    truera/trulens: 2
+    guardrails-ai/guardrails: 2
+    promptfoo/promptfoo: 1
+    confident-ai/deepeval: 1
+    mlflow/mlflow: 1
+    evidentlyai/evidently: 1
+    NVIDIA/garak: 1
+    Azure/PyRIT: 1
+    open-policy-agent/opa: 1
+    BerriAI/litellm: 1
+
+- q: Python libraries that can process PDFs locally
+  kind: nl
+  relevant:
+    pymupdf/PyMuPDF: 2
+    py-pdf/pypdf: 2
+    jsvine/pdfplumber: 2
+    pdfminer/pdfminer.six: 2
+    docling-project/docling: 2
+    datalab-to/marker: 2
+    camelot-dev/camelot: 2
+    ocrmypdf/OCRmyPDF: 2
+    Unstructured-IO/unstructured: 1
+    opendatalab/MinerU: 1
+    facebookresearch/nougat: 1
+    microsoft/markitdown: 1
+
+- q: semantic search without requiring a cloud service
+  kind: nl
+  relevant:
+    qdrant/qdrant: 2
+    chroma-core/chroma: 2
+    lancedb/lancedb: 2
+    neuml/txtai: 2
+    asg017/sqlite-vec: 2
+    meilisearch/meilisearch: 2
+    typesense/typesense: 2
+    oramasearch/orama: 2
+    khoj-ai/khoj: 2
+    weaviate/weaviate: 1
+    milvus-io/milvus: 1
+    pgvector/pgvector: 1
+    facebookresearch/faiss: 1
+    unum-cloud/usearch: 1
+    marqo-ai/marqo: 1
+    vespa-engine/vespa: 1
+    qdrant/fastembed: 1
+
+- q: Sims-style 3D house builder
+  kind: nl
+  relevant:
+    furnishup/blueprint3d: 2
+    cvdlab/react-planner: 2
+    mrdoob/three.js: 1
+    pmndrs/react-three-fiber: 1
+    pmndrs/drei: 1
+    BabylonJS/Babylon.js: 1
+    playcanvas/engine: 1
+    ThatOpen/engine_web-ifc: 1
+    gkjohnson/three-bvh-csg: 1
+    godotengine/godot: 1
+    dimforge/rapier: 1
+    pmndrs/react-three-rapier: 1
+
+- q: vector database written in Rust
+  kind: keyword
+  relevant:
+    qdrant/qdrant: 2
+    lancedb/lancedb: 2
+    meilisearch/meilisearch: 1
+
+- q: run large language models locally on my GPU
+  kind: nl
+  relevant:
+    ollama/ollama: 2
+    ggml-org/llama.cpp: 2
+    vllm-project/vllm: 2
+    mudler/LocalAI: 2
+    open-webui/open-webui: 1
+    huggingface/text-generation-inference: 1
+    ml-explore/mlx: 1
+    unslothai/unsloth: 1
+    huggingface/transformers: 1
+    Mintplex-Labs/anything-llm: 1
+
+- q: browser automation for AI agents
+  kind: keyword
+  relevant:
+    browser-use/browser-use: 2
+    microsoft/playwright-mcp: 2
+    Skyvern-AI/skyvern: 2
+    executeautomation/mcp-playwright: 2
+    microsoft/playwright: 1
+    puppeteer/puppeteer: 1
+
+- q: evaluate RAG pipeline quality
+  kind: keyword
+  relevant:
+    confident-ai/deepeval: 2
+    promptfoo/promptfoo: 2
+    truera/trulens: 2
+    Arize-ai/phoenix: 2
+    comet-ml/opik: 1
+    langfuse/langfuse: 1
+    mlflow/mlflow: 1
+    evidentlyai/evidently: 1
+
+- q: self-hosted workflow automation like Zapier
+  kind: nl
+  relevant:
+    n8n-io/n8n: 2
+    activepieces/activepieces: 2
+    huginn/huginn: 2
+    windmill-labs/windmill: 2
+    triggerdotdev/trigger.dev: 1
+    FlowiseAI/Flowise: 1
+    langgenius/dify: 1
+
+- q: speech to text transcription
+  kind: keyword
+  relevant:
+    openai/whisper: 2
+    SYSTRAN/faster-whisper: 2
+    mudler/LocalAI: 1
+
+- q: physics engine for the web
+  kind: keyword
+  relevant:
+    dimforge/rapier: 2
+    pmndrs/cannon-es: 2
+    pmndrs/react-three-rapier: 2
+    BabylonJS/Babylon.js: 1
+    playcanvas/engine: 1
+
+- q: game engine with entity component system
+  kind: keyword
+  relevant:
+    bevyengine/bevy: 2
+    godotengine/godot: 1
+    aframevr/aframe: 1
+    playcanvas/engine: 1
+    excaliburjs/Excalibur: 1
+    phaserjs/phaser: 1
+    kaplayjs/kaplay: 1
+
+- q: identity provider with single sign-on
+  kind: keyword
+  relevant:
+    keycloak/keycloak: 2
+    zitadel/zitadel: 2
+    authelia/authelia: 2
+    ory/kratos: 2
+    supabase/supabase: 1
+
+- q: infrastructure as code
+  kind: keyword
+  relevant:
+    hashicorp/terraform: 2
+    opentofu/opentofu: 2
+    pulumi/pulumi: 2
+    argoproj/argo-cd: 1
+
+- q: charting library for React
+  kind: keyword
+  relevant:
+    recharts/recharts: 2
+    airbnb/visx: 2
+    plouc/nivo: 2
+    tremorlabs/tremor: 2
+    apache/echarts: 1
+    chartjs/Chart.js: 1
+    plotly/plotly.js: 1
+    d3/d3: 1
+    observablehq/plot: 1
+
+- q: node-based graph editor UI
+  kind: keyword
+  relevant:
+    xyflow/xyflow: 2
+    antvis/G6: 1
+
+- q: collaborative whiteboard
+  kind: keyword
+  relevant:
+    excalidraw/excalidraw: 2
+    tldraw/tldraw: 2
+
+- q: coding agent in the terminal
+  kind: keyword
+  relevant:
+    anthropics/claude-code: 2
+    openai/codex: 2
+    Aider-AI/aider: 2
+    google-gemini/gemini-cli: 2
+    cline/cline: 1
+    continuedev/continue: 1
+    RooCodeInc/Roo-Code: 1
+    oraios/serena: 1
+
+- q: one API for many LLM providers
+  kind: nl
+  relevant:
+    BerriAI/litellm: 2
+    Helicone/helicone: 1
+    mudler/LocalAI: 1
+
+- q: knowledge graph based retrieval augmented generation
+  kind: keyword
+  relevant:
+    microsoft/graphrag: 2
+    HKUDS/LightRAG: 2
+    infiniflow/ragflow: 1
+    run-llama/llama_index: 1
+    neuml/txtai: 1
+
+- q: convert documents to markdown for LLMs
+  kind: keyword
+  relevant:
+    microsoft/markitdown: 2
+    docling-project/docling: 2
+    datalab-to/marker: 2
+    opendatalab/MinerU: 2
+    Unstructured-IO/unstructured: 1
+    facebookresearch/nougat: 1
+
+- q: gaussian splatting viewer
+  kind: keyword
+  relevant:
+    mkkellogg/GaussianSplats3D: 2
+    graphdeco-inria/gaussian-splatting: 2
+    nerfstudio-project/nerfstudio: 1
+    playcanvas/engine: 1
+
+- q: durable workflow execution engine
+  kind: keyword
+  relevant:
+    temporalio/temporal: 2
+    triggerdotdev/trigger.dev: 2
+    apache/airflow: 1
+    PrefectHQ/prefect: 1
+    dagster-io/dagster: 1
+    windmill-labs/windmill: 1
+
+- q: data pipeline orchestration in Python
+  kind: keyword
+  relevant:
+    apache/airflow: 2
+    PrefectHQ/prefect: 2
+    dagster-io/dagster: 2
+    dlt-hub/dlt: 2
+    airbytehq/airbyte: 1
+    windmill-labs/windmill: 1
+
+- q: fast dataframe library
+  kind: keyword
+  relevant:
+    pola-rs/polars: 2
+    duckdb/duckdb: 1
+    ibis-project/ibis: 1
+
+- q: self-hosted backend as a service with auth and database
+  kind: nl
+  relevant:
+    supabase/supabase: 2
+    pocketbase/pocketbase: 2
+    directus/directus: 1
+    strapi/strapi: 1
+    payloadcms/payload: 1
+
+- q: headless CMS
+  kind: keyword
+  relevant:
+    strapi/strapi: 2
+    directus/directus: 2
+    payloadcms/payload: 2
+
+- q: self-hosted alternative to Heroku
+  kind: nl
+  relevant:
+    coollabsio/coolify: 2
+    dokku/dokku: 2
+
+- q: reverse proxy with automatic HTTPS
+  kind: keyword
+  relevant:
+    caddyserver/caddy: 2
+    traefik/traefik: 2
+    envoyproxy/envoy: 1
+    Kong/kong: 1
+    apache/apisix: 1
+
+- q: red teaming and vulnerability scanning for LLMs
+  kind: keyword
+  relevant:
+    NVIDIA/garak: 2
+    Azure/PyRIT: 2
+    promptfoo/promptfoo: 2
+    guardrails-ai/guardrails: 1
+    confident-ai/deepeval: 1
+
+- q: MCP server for GitHub
+  kind: keyword
+  relevant:
+    github/github-mcp-server: 2
+    modelcontextprotocol/servers: 1
+    punkpeye/awesome-mcp-servers: 1
+
+- q: react-three-fiber
+  kind: name
+  relevant:
+    pmndrs/react-three-fiber: 2
+    pmndrs/drei: 1
+    pmndrs/react-three-rapier: 1
+    pmndrs/postprocessing: 1
+
+- q: langgraph
+  kind: name
+  relevant:
+    langchain-ai/langgraph: 2
+    langchain-ai/langchain: 1
+    langchain-ai/langchain-mcp-adapters: 1
+
+- q: llama.cpp
+  kind: name
+  relevant:
+    ggml-org/llama.cpp: 2
+    ollama/ollama: 1
+    mudler/LocalAI: 1
+
+- q: fine-tune an LLM with LoRA
+  kind: keyword
+  relevant:
+    unslothai/unsloth: 2
+    huggingface/transformers: 1
+    mlabonne/llm-course: 1
+    ml-explore/mlx: 1
+    rasbt/LLMs-from-scratch: 1
+
+- q: text to speech voice cloning
+  kind: keyword
+  relevant:
+    coqui-ai/TTS: 2
+    mudler/LocalAI: 1
+
+- q: image segmentation model
+  kind: keyword
+  relevant:
+    facebookresearch/segment-anything: 2
+    ultralytics/ultralytics: 2
+
+- q: chat UI for local models
+  kind: keyword
+  relevant:
+    open-webui/open-webui: 2
+    Mintplex-Labs/anything-llm: 2
+    khoj-ai/khoj: 1
+    mudler/LocalAI: 1
+    langgenius/dify: 1
+    ollama/ollama: 1
+
+- q: Tailwind component library
+  kind: keyword
+  relevant:
+    saadeghi/daisyui: 2
+    shadcn-ui/ui: 2
+    magicuidesign/magicui: 2
+    heroui-inc/heroui: 2
+    tremorlabs/tremor: 1
+    tailwindlabs/tailwindcss: 1
+
+- q: secrets management
+  kind: keyword
+  relevant:
+    hashicorp/vault: 2
+
+- q: policy as code authorization
+  kind: keyword
+  relevant:
+    open-policy-agent/opa: 2
+
+- q: learn how to build an LLM from scratch
+  kind: nl
+  relevant:
+    rasbt/LLMs-from-scratch: 2
+    karpathy/nanoGPT: 2
+    mlabonne/llm-course: 1
+    microsoft/generative-ai-for-beginners: 1
+
+- q: embeddings inference server
+  kind: keyword
+  relevant:
+    huggingface/text-embeddings-inference: 2
+    qdrant/fastembed: 1
+    mudler/LocalAI: 1
+    ollama/ollama: 1
+    vllm-project/vllm: 1
+
+- q: 2D game framework for JavaScript
+  kind: keyword
+  relevant:
+    phaserjs/phaser: 2
+    kaplayjs/kaplay: 2
+    excaliburjs/Excalibur: 2
+    pixijs/pixijs: 1
+
+- q: 3D globe and geospatial visualization
+  kind: keyword
+  relevant:
+    CesiumGS/cesium: 2
+    visgl/deck.gl: 2
+
+- q: kuberntes autoscaler
+  kind: typo
+  relevant:
+    kedacore/keda: 2
+    argoproj/argo-cd: 1
+
+- q: vectr databse
+  kind: typo
+  relevant:
+    qdrant/qdrant: 2
+    milvus-io/milvus: 2
+    weaviate/weaviate: 2
+    chroma-core/chroma: 2
+    lancedb/lancedb: 2
+    pgvector/pgvector: 2
+    asg017/sqlite-vec: 1
+    facebookresearch/faiss: 1
+    unum-cloud/usearch: 1
+    marqo-ai/marqo: 1
+    vespa-engine/vespa: 1
+
+- q: remtion
+  kind: typo
+  relevant:
+    remotion-dev/remotion: 2

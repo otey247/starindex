@@ -77,7 +77,7 @@ function FacetList({
           <Checkbox
             checked={selected.includes(v.value)}
             onChange={() => onToggle(v.value)}
-            label={labels?.[v.value] ?? v.label ?? v.value}
+            label={v.label ?? labels?.[v.value] ?? v.value}
             className="min-w-0 flex-1 !text-[13px]"
           />
           <span className="shrink-0 text-2xs text-fg-4 tnum">{formatCount(v.count)}</span>

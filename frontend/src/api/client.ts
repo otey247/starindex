@@ -111,7 +111,7 @@ export const api = {
     patch<T.Report>(`/reports/${id}`, body),
   deleteReport: (id: number) => del<T.Ok>(`/reports/${id}`),
   reportExportUrl: (id: number) => `/api/reports/${id}/export`,
-  evidenceChunk: (chunkId: number) => get<T.EvidenceDetail>(`/evidence/chunk/${chunkId}`),
+  evidenceChunk: (chunkId: number, contextLines = 12) => get<T.EvidenceDetail>(`/evidence/chunk/${chunkId}${qs({ context_lines: contextLines })}`),
   modelOptions: () => get<T.ModelOptions>("/model-options"),
 
   // ---- collections / tags / categories
@@ -128,6 +128,8 @@ export const api = {
   removeFromCollection: (id: number, repoIds: number[]) =>
     post<T.Collection>(`/collections/${id}/repos/remove`, { repo_ids: repoIds }),
   tags: () => get<T.Tag[]>("/tags"),
+  renameTag: (name: string, next: string) => patch<T.Tag[]>(`/tags/${encodeURIComponent(name)}`, { name: next }),
+  deleteTag: (name: string) => del<T.Tag[]>(`/tags/${encodeURIComponent(name)}`),
   categories: () => get<T.Category[]>("/categories"),
   createCategory: (body: { name: string; description?: string; keywords?: string[] }) =>
     post<T.Category>("/categories", body),

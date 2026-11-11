@@ -1,6 +1,8 @@
 /**
- * Capture UI screenshots against `npm run dev:mock` (http://127.0.0.1:5174).
- *   node scripts/screenshots.cjs [--scale 2] [--only name1,name2] [--out screenshots] [--mobile]
+ * Capture UI screenshots.
+ *   against the mock:      node scripts/screenshots.cjs [--scale 2] [--only a,b] [--out dir] [--mobile|--desktop]
+ *   against a real server: node scripts/screenshots.cjs --real --base http://127.0.0.1:8765 ...
+ * In --real mode the mock-only scenario shots are skipped and repository ids are looked up by name.
  */
 const { chromium } = require("playwright");
 const fs = require("node:fs");
@@ -18,12 +20,21 @@ const ONLY = arg("only", "") ? arg("only", "").split(",") : null;
 const MOBILE_ONLY = args.includes("--mobile");
 const DESKTOP_ONLY = args.includes("--desktop");
 
-const mock = (body) => fetch(`${BASE}/api/__mock`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-const REPO = 100000000 + 16 * 7919; // qdrant/qdrant
-const R3F = 100000000 + 52 * 7919; // pmndrs/react-three-fiber
+const REAL = args.includes("--real");
+const mock = (body) => (REAL ? Promise.resolve() : fetch(`${BASE}/api/__mock`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+const ids = { REPO: 100000000 + 16 * 7919, R3F: 100000000 + 52 * 7919, B: 100000000 + 17 * 7919, C: 100000000 + 23 * 7919 }; // mock ids
+
+async function resolveIds() {
+  if (!REAL) return;
+  const byName = async (name) => (await (await fetch(`${BASE}/api/repos/by-name/${name}`)).json()).id;
+  ids.REPO = await byName("qdrant/qdrant");
+  ids.R3F = await byName("pmndrs/react-three-fiber");
+  ids.B = await byName("chroma-core/chroma");
+  ids.C = await byName("lancedb/lancedb");
+}
 
 /** name, path, optional prepare(page) run after load, optional scenario posted before load */
-const SHOTS = [
+const buildShots = () => [
   { name: "search-start", url: "/search" },
   { name: "search-results", url: "/search?q=agentic+orchestration+with+MCP+support" },
   { name: "search-explain", url: "/search?q=semantic+search+without+requiring+a+cloud+service&explain=1" },
@@ -37,11 +48,11 @@ const SHOTS = [
   { name: "library-list", url: "/library?view=list&category=3d" },
   { name: "library-selected", url: "/library", prepare: async (p) => { const boxes = p.locator("[data-result-row] label"); for (let i = 0; i < 3; i++) await boxes.nth(i).click(); await p.waitForTimeout(200); } },
   { name: "library-duplicates", url: "/library?view=duplicates" },
-  { name: "repo-overview", url: `/repo/${REPO}` },
-  { name: "repo-files", url: `/repo/${REPO}?tab=files` },
-  { name: "repo-dependencies", url: `/repo/${REPO}?tab=dependencies` },
-  { name: "repo-related", url: `/repo/${R3F}?tab=related` },
-  { name: "repo-ideas", url: `/repo/${R3F}?tab=ideas`, prepare: async (p) => { await p.getByRole("button", { name: "Generate ideas" }).click(); await p.waitForTimeout(4500); } },
+  { name: "repo-overview", url: `/repo/${ids.REPO}` },
+  { name: "repo-files", url: `/repo/${ids.REPO}?tab=files` },
+  { name: "repo-dependencies", url: `/repo/${ids.REPO}?tab=dependencies` },
+  { name: "repo-related", url: `/repo/${ids.R3F}?tab=related` },
+  { name: "repo-ideas", url: `/repo/${ids.R3F}?tab=ideas`, prepare: async (p) => { await p.getByRole("button", { name: "Generate ideas" }).click(); await p.waitForTimeout(4500); } },
   { name: "ask-empty", url: "/ask" },
   { name: "ask-answer", url: "/ask?q=Which+of+my+starred+repositories+are+relevant+to+AI+governance+and+observability%3F", wait: 9000 },
   { name: "ask-no-model", url: "/ask?q=Find+Python+libraries+that+can+process+PDFs+locally", scenario: { llm: "none" }, wait: 2500, after: { llm: "local" } },
@@ -51,7 +62,7 @@ const SHOTS = [
   { name: "research-running", url: "/research?run=1&q=Using+only+repositories+I+have+starred%2C+design+a+local-first+AI+search+platform+with+agentic+capabilities.", wait: 4200, live: true },
   { name: "research-done", url: "/research?run=1&q=Using+only+repositories+I+have+starred%2C+design+a+local-first+AI+search+platform+with+agentic+capabilities.", wait: 16000 },
   { name: "research-trace", url: "/research?run=1&q=Which+agent+frameworks+support+MCP%3F", wait: 15000, prepare: async (p) => { await p.getByRole("tab", { name: /Research trace/ }).click(); await p.waitForTimeout(300); } },
-  { name: "compare", url: `/compare?ids=${REPO},${100000000 + 17 * 7919},${100000000 + 23 * 7919}` },
+  { name: "compare", url: `/compare?ids=${ids.REPO},${ids.B},${ids.C}` },
   { name: "compare-empty", url: "/compare" },
   { name: "collections", url: "/collections" },
   { name: "collection-detail", url: "/collections/2" },
@@ -80,6 +91,8 @@ const SHOTS = [
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
+  await resolveIds();
+  const SHOTS = buildShots();
   const browser = await chromium.launch();
   const viewports = [];
   if (!MOBILE_ONLY) viewports.push({ tag: "desktop", width: 1440, height: 900 });
@@ -89,16 +102,17 @@ const SHOTS = [
     for (const shot of SHOTS) {
       if (ONLY && !ONLY.includes(shot.name)) continue;
       if (shot.desktopOnly && vp.tag === "mobile") continue;
+      if (REAL && (shot.scenario || shot.mockOnly)) continue;
       await mock({ reset: true });
       if (shot.scenario) await mock(shot.scenario);
       const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: SCALE, isMobile: vp.tag === "mobile", hasTouch: vp.tag === "mobile" });
       const page = await context.newPage();
       page.on("pageerror", (e) => problems.push(`${shot.name}/${vp.tag}: pageerror ${e.message}`));
       page.on("console", (m) => {
-        if (m.type() === "error" && !/Failed to load resource/.test(m.text())) problems.push(`${shot.name}/${vp.tag}: console ${m.text().slice(0, 200)}`);
+        if (m.type() === "error" && (!/Failed to load resource/.test(m.text()) || /Content Security Policy/i.test(m.text()))) problems.push(`${shot.name}/${vp.tag}: console ${m.text().slice(0, 200)}`);
       });
       try {
-        await page.goto(BASE + shot.url, { waitUntil: shot.live ? "load" : "networkidle", timeout: 20000 }).catch(() => page.waitForTimeout(800));
+        await page.goto(BASE + shot.url, { waitUntil: shot.live ? "load" : "networkidle", timeout: REAL ? 45000 : 20000 }).catch(() => page.waitForTimeout(800));
         await page.waitForTimeout(shot.wait ?? 450);
         if (shot.prepare) await shot.prepare(page);
         // horizontal overflow check: a page must never scroll sideways

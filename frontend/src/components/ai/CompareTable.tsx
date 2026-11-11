@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { Comparison, CompareRow, EvidenceClass } from "@/api/types";
 import { EvidenceClassLabel } from "@/components/evidence/EvidenceBits";
 import { RepoTitle } from "@/components/repo/RepoBits";
@@ -12,6 +12,23 @@ const GROUPS: { key: CompareRow["group"]; label: string }[] = [
   { key: "dependencies", label: "Dependencies" },
   { key: "licensing", label: "Licensing" },
 ];
+
+/** Long cells (feature lists, dependency lists) are clamped and expand on demand. */
+function CellValue({ value, strong }: { value: string; strong: boolean }) {
+  const [open, setOpen] = useState(false);
+  const empty = !value || value === "—";
+  const long = value.length > 260 || value.split("\n").length > 6;
+  return (
+    <>
+      <span className={`whitespace-pre-line break-words ${empty ? "text-fg-4" : strong ? "text-fg" : "text-fg-2"} ${long && !open ? "line-clamp-6" : ""}`}>{value || "—"}</span>
+      {long && (
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mt-0.5 block cursor-pointer text-2xs text-fg-4 hover:text-fg">
+          {open ? "Show less" : "Show all"}
+        </button>
+      )}
+    </>
+  );
+}
 
 /** Deterministic side-by-side comparison. Works with no model configured. */
 export function CompareTable({ comparison, onRemove }: { comparison: Comparison; onRemove?: (repoId: number) => void }) {
@@ -31,7 +48,7 @@ export function CompareTable({ comparison, onRemove }: { comparison: Comparison;
           <tr>
             <th scope="col" className="sticky left-0 z-[2] bg-bg" />
             {comparison.repos.map((repo) => (
-              <th key={repo.id} scope="col" className="border-b border-line-strong px-4 pb-3 text-left align-bottom font-normal">
+              <th key={repo.id} scope="col" className="border-b border-line-strong px-4 pb-3 text-left align-top font-normal">
                 <RepoTitle repo={repo} />
                 <p className="mt-0.5 line-clamp-2 text-xs text-fg-3">{repo.description}</p>
                 {onRemove && n > 2 && (
@@ -65,7 +82,7 @@ export function CompareTable({ comparison, onRemove }: { comparison: Comparison;
                       const differs = new Set(row.values).size > 1;
                       return (
                         <td key={i} className="px-4 py-2">
-                          <span className={value && value !== "—" ? (differs ? "text-fg" : "text-fg-2") : "text-fg-4"}>{value || "—"}</span>
+                          <CellValue value={value} strong={differs} />
                           {refs.length > 0 && (
                             <span className="ml-1.5 inline-flex flex-wrap gap-0.5 align-middle">
                               {refs.map((ref) => {

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, FolderOpen, ShieldAlert } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { errorMessage } from "@/api/errors";
@@ -28,13 +29,19 @@ export function Excerpt({
   const afterLines = after ? after.replace(/\n$/, "").split("\n") : [];
   const numbered = typeof startLine === "number" && startLine > 0;
   const first = numbered ? (contextStart ?? startLine - beforeLines.length) : 1;
+  const ref = useRef<HTMLDivElement>(null);
+  // Bring the cited lines into view when there is a lot of leading context.
+  useEffect(() => {
+    const first = ref.current?.querySelector("tr[data-cited]");
+    if (first && beforeLines.length > 6) first.scrollIntoView({ block: "center" });
+  }, [text, beforeLines.length]);
   const rows = [
     ...beforeLines.map((l) => ({ l, cited: false })),
     ...mainLines.map((l) => ({ l, cited: true })),
     ...afterLines.map((l) => ({ l, cited: false })),
   ];
   return (
-    <div className="overflow-x-auto rounded-md border border-line bg-[#0a0b0c] py-2" data-testid="excerpt">
+    <div ref={ref} className="overflow-x-auto rounded-md border border-line bg-[#0a0b0c] py-2" data-testid="excerpt">
       <table className="mono w-full border-collapse text-xs leading-[1.6]">
         <tbody>
           {rows.map((row, i) => (

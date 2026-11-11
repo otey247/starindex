@@ -79,7 +79,8 @@ describe("SearchPage", () => {
     expect(summary).toHaveTextContent("37 ms");
     expect(summary).toHaveTextContent("hybrid");
     expect(summary).toHaveTextContent("reranked");
-    expect(summary).toHaveTextContent("BAAI/bge-small-en-v1.5");
+    expect(summary).toHaveTextContent("bge-small-en-v1.5");
+    expect(summary).toHaveAttribute("title", "BAAI/bge-small-en-v1.5");
     const rows = screen.getAllByRole("article");
     expect(rows).toHaveLength(2);
     expect(within(rows[0]!).getByText("README.md")).toBeInTheDocument();
