@@ -75,8 +75,9 @@ Search does not need one. For Ask, Research, summaries and comparison narratives
 - **ChatGPT plan**: *Continue with ChatGPT* in Settings; see [CHATGPT_PLAN.md](CHATGPT_PLAN.md).
 
 **Settings → Hardware** shows the detected GPU and suggests model sizes. With an NVIDIA GPU, Ollama and
-LM Studio use it automatically; for GPU embeddings install with `-Gpu` (needs the CUDA 12 runtime
-libraries that `onnxruntime-gpu` documents).
+LM Studio use it automatically; for GPU embeddings install with `-Gpu`, which replaces the CPU build of
+ONNX Runtime with `onnxruntime-gpu` (it needs the CUDA and cuDNN runtime libraries listed in the ONNX
+Runtime documentation). Embeddings fall back to the CPU when no CUDA provider is available.
 
 ## Run in the background at sign-in
 

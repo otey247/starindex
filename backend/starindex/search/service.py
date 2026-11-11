@@ -77,6 +77,7 @@ class SearchService:
         self.ctx = ctx
         self.db = ctx.db
         self.typos = lexical.TypoCorrector(ctx.db)
+        self._expansion_cache: dict[str, list[str]] = {}
 
     # ------------------------------------------------------------------ helpers
 
@@ -522,11 +523,58 @@ class SearchService:
         )
 
     def _expand(self, q: Query) -> None:
-        """Add well-known expansions of abbreviations (lexical side only)."""
+        """Query expansion for the lexical side (setting ``search.query_expansion = auto``; off by default).
+
+        Always: well-known abbreviations. Additionally, when a *local* model is routed for the
+        ``expand_query`` task, up to four alternative keywords from that model (cached per query,
+        short timeout, any failure ignored). Cloud models are never used for this: a search must
+        not send text off the machine. On the evaluation set the abbreviation map did not improve
+        ranking, which is why expansion is opt-in.
+        """
         text = " ".join(q.all_terms)
         for short, long in EXPANSIONS.items():
             if re.search(rf"\b{re.escape(short)}\b", text) and long not in q.expansions:
                 q.expansions.append(long)
+        key = text.strip()
+        if not key or len(q.terms) < 2:
+            return
+        cached = self._expansion_cache.get(key)
+        if cached is None:
+            cached = self._llm_expansions(q.text or key)
+            if len(self._expansion_cache) > 500:
+                self._expansion_cache.clear()
+            self._expansion_cache[key] = cached
+        for phrase in cached:
+            if phrase not in q.expansions:
+                q.expansions.append(phrase)
+
+    def _llm_expansions(self, text: str) -> list[str]:
+        from ..providers.base import ChatMessage, GenerationRequest, ProviderError
+
+        try:
+            resolved = self.ctx.router.resolve("expand_query")       # no cloud confirmation is ever given here
+        except ProviderError:
+            return []
+        if resolved.is_cloud:
+            return []
+        schema = {"type": "object", "properties": {"keywords": {"type": "array", "items": {"type": "string"}, "maxItems": 4}}, "required": ["keywords"]}
+        try:
+            parsed, result = resolved.provider.generate_json(
+                GenerationRequest(
+                    model=resolved.model,
+                    system="You help search a library of software repositories. Reply with JSON only.",
+                    messages=[ChatMessage(role="user", content=f"Give up to four alternative search keywords or short phrases (synonyms, the technical term) for: {text[:300]}")],
+                    temperature=0.0, max_output_tokens=80, json_schema=schema, json_schema_name="expansion", timeout_s=8.0,
+                )
+            )
+            self.ctx.router.record_usage(resolved, "expand_query", result.usage)
+        except Exception:
+            return []
+        out = []
+        for item in parsed.get("keywords", []) if isinstance(parsed, dict) else []:
+            if isinstance(item, str) and 2 < len(item) <= 60:
+                out.append(item.strip().lower())
+        return out[:4]
 
     def _record(self, req: SearchRequest, count: int) -> None:
         if not req.query.strip():

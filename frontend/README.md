@@ -51,11 +51,19 @@ npm run smoke
 Real-browser check of keyboard interaction and the main flows (needs `npm run dev:mock` running).
 
 ```bash
-npm run screenshots -- --scale 2 --out screenshots
+npm run screenshots -- --scale 2 --out /tmp/starindex-shots
 ```
 
 Capture every screen at desktop (1440×900) and phone (390×844) size against the mock server. The
-script also fails on console errors, uncaught page errors and horizontal overflow.
+script also fails on console errors, uncaught page errors, Content-Security-Policy violations and
+horizontal overflow. Against a running StarIndex instead of the mock:
+
+```bash
+npm run screenshots -- --real --base http://127.0.0.1:8765 --scale 2 --out screenshots --only search-results,library
+```
+
+The images in `screenshots/` were captured this way from a real instance with 242 indexed
+repositories. The full browser test suite lives in `../e2e`.
 
 ## Layout
 
@@ -85,10 +93,11 @@ script also fails on console errors, uncaught page errors and horizontal overflo
   with `rehype-sanitize`; raw HTML is never executed, only `http(s)`/`mailto` links survive, and
   every external link opens with `rel="noopener noreferrer"`. Search snippets are rendered as text
   nodes, with «…» markers turned into `<mark>` by `lib/highlight.tsx`.
-- **Remote images are not loaded by default.** READMEs embed badges and trackers, and the app must
-  work offline, so an image renders as a labelled link. The README panel has an explicit "Load
-  remote images" toggle; when on, images load lazily with `referrerPolicy="no-referrer"`. Owner
-  avatars are not fetched at all.
+- **Remote images are never loaded.** READMEs embed badges and trackers, the app must work
+  offline, and the server's Content-Security-Policy only allows images from the app itself. An
+  image in Markdown renders as a labelled link that opens in the browser. Owner avatars are not
+  fetched either; a monogram is shown instead.
+- **One `<h1>` per page.** A README's own `# Title` renders as an `<h2>` styled like a title.
 - **No silent provider switching.** A failed generation stream becomes state
   (`components/ai/useAiStream.ts`). The error panel lists the alternatives the server offers and the
   user picks one explicitly. A stream that ends without a terminal event is reported as incomplete,
@@ -96,6 +105,11 @@ script also fails on console errors, uncaught page errors and horizontal overflo
 - **Cloud confirmation.** `useCloudGate` holds a request until the user confirms in a dialog that
   names the exact provider and model. The server's own `confirmation_required` error re-opens the
   same dialog, so the check cannot be bypassed from the UI.
+- **No request without a model.** Picking a provider for one request is not enough; until a model
+  is chosen nothing is sent. Switching to an alternative after a failure re-runs immediately only
+  when the server names that provider's model.
+- **Routing is saved whole.** `PUT /api/routing` replaces the table, so every change sends the
+  default and all task routes.
 - **Search needs no model.** Search, Library, Compare (table) and the evidence viewer make no model
   calls. Ask AI without a configured model still shows the retrieved passages.
 - **URL is the state.** Search and Library keep query, mode, scope, sort, view, page and every
@@ -120,7 +134,7 @@ Search, Library, Ask, Research, Compare, Collections, Sync, Settings · `Alt+1�
 
 `npm run dev:mock` mounts `mocks/plugin.ts` as Vite middleware. It implements every endpoint in
 `docs/API.md`, including the streaming ones, over about 90 real, well-known repositories with
-approximate figures. It is imported only when `STARINDEX_MOCK=1` and the command is `serve`, so a
+approximate figures. It is imported only in mock mode (`npm run dev:mock`) and when the command is `serve`, so a
 production build never contains it.
 
 Scenarios for manual testing:

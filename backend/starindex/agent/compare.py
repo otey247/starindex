@@ -62,6 +62,8 @@ def license_notes(repos: list[tuple[str, str | None]]) -> list[str]:
             notes.append(f"{name} is {spdx} (strong copyleft): distributing a combined work generally requires releasing it under the same license.")
         elif f == "source-available (not open source)":
             notes.append(f"{name} is {spdx}, which restricts some uses (for example commercial or competing use). Read its terms before building on it.")
+        elif f == "other / unrecognised" and spdx == "Other":
+            notes.append(f"{name} has a license file that GitHub could not classify (shown as “Other”). Read it before depending on the project.")
         elif f == "other / unrecognised":
             notes.append(f"{name} uses {spdx}, which StarIndex does not classify. Review it manually.")
     copyleft = [n for n, f in fam.items() if f in ("strong copyleft", "network copyleft")]

@@ -56,10 +56,3 @@ evaluation corpus used by the fake GitHub (`python eval/build_corpus.py`, once, 
 
 Tests in the `desktop` project share one backend and run serially (`workers: 1`). Names created by
 tests carry a per-run suffix, so the suite can also be pointed at an instance that already has data.
-
-## Known constraint
-
-`PUT /api/github/auth` rejects pasted tokens shorter than 20 characters, and the fake GitHub's token
-is `demo-token` (10 characters). The onboarding test therefore checks that the short token is
-rejected with a clear message, then connects through the credential-free "public stars by username"
-path (`octo`), which exercises the same full-sync and indexing pipeline.

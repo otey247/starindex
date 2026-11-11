@@ -226,3 +226,47 @@ def test_repository_summary_is_cached_and_invalidated(llm, fake):
     fake.push(101, {"README.md": "# Quiver 2\n\nA rewritten README for the next major version of the project with new content.\n"})
     index_repo(llm, 101)
     assert cached_summary(llm, 101, "summary")["stale"] is True                    # source material changed
+
+
+def test_llm_classification_and_query_expansion_use_only_local_models(llm):
+    from starindex.api.schemas import SearchRequest
+    from starindex.jobs.worker import Worker
+
+    llm.jobs.enqueue("classify_repos", {"use_llm": True, "repo_ids": [107]})
+    Worker(llm, mode="embedded").drain(include_deferred=True)
+    row = llm.db.one("SELECT c.slug, rc.source FROM repo_categories rc JOIN categories c ON c.id=rc.category_id WHERE rc.repo_id=107 AND rc.source='llm'")
+    assert row["slug"] == "rag-search"                                   # what the scripted model answered
+
+    llm.settings_store.patch({"search": {"query_expansion": "auto"}})
+    before = len(llm.fake_llm.requests)
+    llm.search.search(SearchRequest(query="k8s autoscaling operator", mode="keyword", record=False))
+    assert len(llm.fake_llm.requests) == before + 1                      # one local call ...
+    llm.search.search(SearchRequest(query="k8s autoscaling operator", mode="keyword", record=False))
+    assert len(llm.fake_llm.requests) == before + 1                      # ... then cached
+
+    cloud = llm.providers.create("openai_compat", "Remote", "https://llm.example.com/v1", {}, True, "sk-test-123456789012345678901234")
+    llm.settings_store.patch({"privacy": {"allow_cloud_models": True, "confirm_before_cloud": False}})
+    from starindex.providers.router import ModelRouter
+    from starindex.settings_store import Route
+
+    settings = llm.settings
+    settings.routing.tasks["expand_query"] = Route(provider_id=cloud.id, model="fake-good")
+    llm.settings_store.save(settings)
+    llm.__dict__["router"] = ModelRouter(llm.db, llm.settings_store, llm.providers, llm.chatgpt, transport=llm.fake_llm.transport())
+    llm.search._expansion_cache.clear()
+    before = len(llm.fake_llm.requests)
+    llm.search.search(SearchRequest(query="vector similarity engine", mode="keyword", record=False))
+    assert len(llm.fake_llm.requests) == before                          # a search never sends text to a cloud model
+
+
+def test_unclassified_license_is_not_reported_as_missing():
+    from starindex.library.repos import github_to_row
+    from starindex.testing.fake_github import make_repo
+
+    repo = make_repo(1, "a/b")
+    repo["license"] = {"spdx_id": "NOASSERTION", "name": "Other"}
+    assert github_to_row(repo)["license_spdx"] == "Other"
+    repo["license"] = None
+    assert github_to_row(repo)["license_spdx"] is None
+    notes = " ".join(license_notes([("a/b", "Other"), ("c/d", None)]))
+    assert "could not classify" in notes and "c/d has no detected license" in notes and "a/b has no detected license" not in notes

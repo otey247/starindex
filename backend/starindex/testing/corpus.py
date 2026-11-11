@@ -18,7 +18,7 @@ def load_corpus(path: Path | None = None) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def fake_from_corpus(path: Path | None = None, *, login: str = "octo", token: str | None = "demo-token", limit: int | None = None) -> FakeGitHub:
+def fake_from_corpus(path: Path | None = None, *, login: str = "octo", token: str | None = "demo-token-for-local-testing-only", limit: int | None = None) -> FakeGitHub:
     """A FakeGitHub whose starred list is the corpus, starred one per day in a stable order."""
     fake = FakeGitHub(login=login, token=token)
     corpus = load_corpus(path)

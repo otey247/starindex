@@ -4,10 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type PluginOption } from "vite";
 
-const useMock = process.env.STARINDEX_MOCK === "1";
 const apiTarget = process.env.STARINDEX_API_URL ?? "http://127.0.0.1:8765";
 
-export default defineConfig(async ({ command }) => {
+export default defineConfig(async ({ command, mode }) => {
+  // `npm run dev:mock` starts Vite in "mock" mode (works in every shell); STARINDEX_MOCK=1 also enables it.
+  const useMock = mode === "mock" || process.env.STARINDEX_MOCK === "1";
   const plugins: PluginOption[] = [react(), tailwindcss()];
   // The fixture-backed mock API only ever exists inside the dev server (`npm run dev:mock`).
   // It is imported dynamically so a production build never bundles or references it.

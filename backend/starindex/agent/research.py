@@ -26,7 +26,16 @@ from ..api.schemas import ResearchRequest, TraceStep
 from ..library import reports as report_store
 from ..library.repos import maintenance_status
 from ..providers.base import ChatMessage, GenerationRequest, ProviderError
-from .ask import CITE_REMINDER, GROUNDING_RULES, Event, UsageMeter, error_event, status_payload, stream_text, to_route
+from .ask import (
+    CITE_REMINDER,
+    GROUNDING_RULES,
+    Event,
+    UsageMeter,
+    error_event,
+    status_payload,
+    stream_text,
+    to_route,
+)
 from .compare import license_notes
 from .evidence import CITATION, EvidenceSet, check_answer
 from .safety import UNTRUSTED_NOTICE, neutralize

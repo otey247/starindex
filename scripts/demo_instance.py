@@ -6,7 +6,7 @@ Used for browser tests and for trying the application without a GitHub account:
     python scripts/demo_instance.py --data-dir ./.demo-data --port 8765
 
 The fake GitHub API listens on --github-port; StarIndex is configured (through environment
-variables) to use it instead of api.github.com, with the token "demo-token".
+variables) to use it instead of api.github.com, with the token "demo-token-for-local-testing-only".
 """
 
 from __future__ import annotations
@@ -68,7 +68,7 @@ def main() -> None:
     if args.connect or args.sync:
         from starindex.secrets import GITHUB_TOKEN
 
-        ctx.secrets.set(GITHUB_TOKEN, "demo-token")
+        ctx.secrets.set(GITHUB_TOKEN, "demo-token-for-local-testing-only")
         patch["github"] = {"auth_method": "token"}
     ctx.settings_store.patch(patch)
     if args.sync:
@@ -80,7 +80,7 @@ def main() -> None:
     from starindex.api.app import create_app
 
     app = create_app(ctx)
-    print(f"StarIndex demo at http://127.0.0.1:{args.port}  (fake GitHub on :{args.github_port}, token: demo-token, data: {data_dir})", flush=True)
+    print(f"StarIndex demo at http://127.0.0.1:{args.port}  (fake GitHub on :{args.github_port}, token: demo-token-for-local-testing-only, data: {data_dir})", flush=True)
     time.sleep(0.3)
     uvicorn.run(app, host="127.0.0.1", port=args.port, log_config=None, access_log=False)
 

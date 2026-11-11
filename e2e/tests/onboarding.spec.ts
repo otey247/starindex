@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { GITHUB_LOGIN } from "../env";
+import { GITHUB_LOGIN, GITHUB_TOKEN } from "../env";
 import { rows, watchForErrors } from "./helpers";
 
 test("first run: connect GitHub, import every star, land in Search", async ({ page }) => {
@@ -15,13 +15,14 @@ test("first run: connect GitHub, import every star, land in Search", async ({ pa
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText(/does not look like a GitHub access token/);
 
-  // …then connect for real. The fake GitHub's token ("demo-token") is shorter than the 20
-  // characters the API requires of a pasted token, so the UI path used here is the
-  // credential-free one: the public stars of the fake account.
-  await page.getByRole("radio", { name: /Public stars by username/ }).click();
-  await page.getByLabel("GitHub username").fill(GITHUB_LOGIN);
+  // …then connect for real with the fake GitHub's access token (stored server-side, never shown again).
+  await page.getByLabel("Token", { exact: true }).fill(GITHUB_TOKEN);
   await page.getByRole("button", { name: "Connect", exact: true }).click();
-  await expect(page.getByText(new RegExp(`Reading ${GITHUB_LOGIN}'s public stars|Connected as ${GITHUB_LOGIN}\\.`)).first()).toBeVisible();
+  await expect(page.getByText(new RegExp(`Connected as ${GITHUB_LOGIN}`)).first()).toBeVisible();
+  const auth = await (await page.request.get("/api/github/auth")).json();
+  expect(auth.method).toBe("token");
+  expect(auth.ok).toBe(true);
+  expect(JSON.stringify(auth)).not.toContain(GITHUB_TOKEN);
 
   // 2. first full sync with live progress
   await page.getByRole("button", { name: "Start the first sync" }).click();

@@ -151,8 +151,8 @@ def recommend(gpus: list[GpuInfo], memory_total_mb: int | None, cpu_count: int, 
         else:
             tips.append(
                 "Embeddings and reranking currently run on CPU, which is fine for a starred-repository library. "
-                "For GPU embeddings install the optional extra: pip install \"starindex[gpu]\" (needs CUDA and cuDNN "
-                "runtimes), then set the embedding device to CUDA in Settings."
+                "For GPU embeddings run scripts\\install.ps1 -Gpu (it swaps onnxruntime for onnxruntime-gpu, which needs "
+                "the CUDA and cuDNN runtimes), then set the embedding device to CUDA in Settings."
             )
     else:
         tips.append(

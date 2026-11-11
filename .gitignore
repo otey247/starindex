@@ -14,3 +14,4 @@ e2e/playwright-report/
 .DS_Store
 eval/.eval-data/
 .demo-data/
+release/

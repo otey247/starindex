@@ -27,18 +27,24 @@ $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 
 function Find-Python {
-    foreach ($candidate in @(@("py", "-3"), @("python"), @("python3"))) {
-        $exe = $candidate[0]
-        if (Get-Command $exe -ErrorAction SilentlyContinue) {
-            $args = @()
-            if ($candidate.Length -gt 1) { $args = $candidate[1..($candidate.Length - 1)] }
-            $version = & $exe @args -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null
-            if ($LASTEXITCODE -eq 0 -and $version) {
-                $parts = $version.Trim().Split(".")
-                if ([int]$parts[0] -eq 3 -and [int]$parts[1] -ge 11) {
-                    return ,@($exe) + $args
-                }
-            }
+    $candidates = @(
+        @{ Exe = "py"; Extra = @("-3") },
+        @{ Exe = "python"; Extra = @() },
+        @{ Exe = "python3"; Extra = @() }
+    )
+    foreach ($candidate in $candidates) {
+        if (-not (Get-Command $candidate.Exe -ErrorAction SilentlyContinue)) { continue }
+        $extra = $candidate.Extra
+        $version = $null
+        try {
+            $version = & $candidate.Exe @extra -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null
+        } catch {
+            continue
+        }
+        if ($LASTEXITCODE -ne 0 -or -not $version) { continue }
+        $parts = "$version".Trim().Split(".")
+        if ($parts.Length -ge 2 -and [int]$parts[0] -eq 3 -and [int]$parts[1] -ge 11) {
+            return $candidate
         }
     }
     return $null
@@ -51,27 +57,30 @@ if (-not $python) {
     Write-Host "Python 3.11 or newer was not found. Install it with:  winget install Python.Python.3.12" -ForegroundColor Red
     exit 1
 }
-Write-Host ("Using Python: " + ($python -join " "))
+$pythonExtra = $python.Extra
+Write-Host ("Using Python: " + $python.Exe + " " + ($pythonExtra -join " "))
 
 $venvPython = Join-Path $Root ".venv\Scripts\python.exe"
 if (-not (Test-Path $venvPython)) {
     Write-Host "Creating virtual environment in .venv ..."
-    $pyExe = $python[0]
-    $pyArgs = @()
-    if ($python.Length -gt 1) { $pyArgs = $python[1..($python.Length - 1)] }
-    & $pyExe @pyArgs -m venv (Join-Path $Root ".venv")
+    & $python.Exe @pythonExtra -m venv (Join-Path $Root ".venv")
     if ($LASTEXITCODE -ne 0) { throw "Could not create the virtual environment." }
 }
 
 Write-Host "Installing Python dependencies (this downloads about 300 MB the first time) ..."
 & $venvPython -m pip install --upgrade pip --quiet
-$extras = @()
-if ($Gpu) { $extras += "gpu" }
-if ($SentenceTransformers) { $extras += "sentence-transformers" }
 $target = "."
-if ($extras.Count -gt 0) { $target = ".[" + ($extras -join ",") + "]" }
+if ($SentenceTransformers) { $target = ".[sentence-transformers]" }
 & $venvPython -m pip install -e $target --quiet
 if ($LASTEXITCODE -ne 0) { throw "Installing Python dependencies failed." }
+
+if ($Gpu) {
+    # ONNX Runtime ships CPU and CUDA builds as separate packages that must not be installed together.
+    Write-Host "Switching ONNX Runtime to the CUDA build ..."
+    & $venvPython -m pip uninstall -y onnxruntime --quiet
+    & $venvPython -m pip install onnxruntime-gpu --quiet
+    if ($LASTEXITCODE -ne 0) { throw "Installing onnxruntime-gpu failed." }
+}
 
 $dist = Join-Path $Root "frontend\dist\index.html"
 if (-not (Test-Path $dist)) {

@@ -71,9 +71,31 @@ def embed_pending(ctx: AppContext, job: JobHandle) -> dict[str, Any]:
 
 
 def classify_repos(ctx: AppContext, job: JobHandle) -> dict[str, Any]:
-    from ..indexing.classify import classify_all
+    """Rules + embedding similarity for everything; with ``use_llm`` also the model routed for classification.
 
-    return {"classified": classify_all(ctx, job, only_unclassified=bool(job.payload.get("only_unclassified")))}
+    The model pass is optional and runs unattended, so it never confirms a cloud provider on the
+    user's behalf: with the default privacy settings only a local model is used.
+    """
+    from ..indexing.classify import classify_all, classify_with_llm
+    from ..providers.base import ProviderError
+
+    count = classify_all(ctx, job, only_unclassified=bool(job.payload.get("only_unclassified")))
+    result: dict[str, Any] = {"classified": count}
+    if job.payload.get("use_llm"):
+        ids = [int(i) for i in job.payload.get("repo_ids", [])] or [
+            r["id"] for r in ctx.db.all("SELECT id FROM repos WHERE star_state='starred' ORDER BY starred_at DESC")
+        ]
+        done = 0
+        for i, repo_id in enumerate(ids):
+            try:
+                classify_with_llm(ctx, repo_id)
+                done += 1
+            except ProviderError as exc:
+                result["llm_stopped"] = exc.message      # stop at the first provider problem; never switch providers
+                break
+            job.progress(i + 1, len(ids), f"Classifying with the configured model ({i + 1}/{len(ids)})")
+        result["llm_classified"] = done
+    return result
 
 
 def rebuild_search_index(ctx: AppContext, job: JobHandle) -> dict[str, Any]:

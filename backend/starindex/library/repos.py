@@ -84,9 +84,10 @@ def github_to_row(repo: dict[str, Any]) -> dict[str, Any]:
     """Map a GitHub REST repository object to our column values."""
     owner = repo.get("owner") or {}
     license_ = repo.get("license") or {}
-    spdx = license_.get("spdx_id")
-    if spdx in ("NOASSERTION", ""):
-        spdx = None
+    spdx = license_.get("spdx_id") or None
+    if spdx == "NOASSERTION":
+        # GitHub found a license file it could not classify. That is not "no license".
+        spdx = "Other"
     full_name = repo.get("full_name") or f"{owner.get('login', '')}/{repo.get('name', '')}"
     parent = repo.get("parent") or {}
     return {

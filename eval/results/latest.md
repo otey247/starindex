@@ -1,30 +1,30 @@
-# Search evaluation (2026-11-11 19:35 UTC)
+# Search evaluation (2026-11-11 19:48 UTC)
 
 Corpus: 242 repositories, 446 documents, 5151 passages (5151 embedded). Embedding model: `fastembed:BAAI/bge-small-en-v1.5`. Reranker: `Xenova/ms-marco-MiniLM-L-6-v2`. 52 queries with graded judgments.
 
 | Configuration | Recall@10 | Recall@10 (capped) | nDCG@10 | MRR | median latency | p95 latency |
 |---|---|---|---|---|---|---|
-| keyword | 0.669 | 0.691 | 0.676 | 0.870 | 38 ms | 56 ms |
-| semantic | 0.667 | 0.690 | 0.721 | 0.917 | 197 ms | 243 ms |
-| hybrid | 0.759 | 0.784 | 0.754 | 0.893 | 206 ms | 292 ms |
-| hybrid+rerank | 0.774 | 0.801 | 0.819 | 0.962 | 1433 ms | 3278 ms |
-| hybrid (repo lists only) | 0.743 | 0.769 | 0.756 | 0.907 | 193 ms | 297 ms |
-| hybrid (chunk lists only) | 0.637 | 0.658 | 0.654 | 0.853 | 201 ms | 267 ms |
-| hybrid (equal weights) | 0.733 | 0.758 | 0.750 | 0.909 | 191 ms | 260 ms |
-| hybrid (semantic x1.0) | 0.748 | 0.773 | 0.750 | 0.887 | 195 ms | 265 ms |
-| hybrid (semantic x2) | 0.757 | 0.783 | 0.765 | 0.920 | 202 ms | 262 ms |
-| hybrid (lexical x2) | 0.745 | 0.770 | 0.742 | 0.882 | 208 ms | 277 ms |
-| hybrid (no priors) | 0.757 | 0.782 | 0.754 | 0.896 | 177 ms | 241 ms |
-| hybrid (typo tolerance off) | 0.754 | 0.779 | 0.746 | 0.893 | 146 ms | 218 ms |
-| hybrid (query expansion auto) | 0.759 | 0.783 | 0.754 | 0.902 | 182 ms | 251 ms |
-| keyword (typo tolerance off) | 0.641 | 0.662 | 0.642 | 0.831 | 35 ms | 48 ms |
-| semantic+rerank | 0.720 | 0.744 | 0.777 | 0.962 | 1340 ms | 3170 ms |
-| rerank blend 1:0.5 best_chunk | 0.767 | 0.794 | 0.815 | 0.944 | 689 ms | 1178 ms |
-| rerank blend 1:1 best_chunk | 0.766 | 0.793 | 0.808 | 0.923 | 1556 ms | 3908 ms |
-| rerank blend 1:0.5 intro | 0.759 | 0.784 | 0.820 | 0.962 | 1416 ms | 3379 ms |
-| rerank blend 1:1 intro | 0.774 | 0.801 | 0.819 | 0.962 | 1126 ms | 3929 ms |
-| rerank blend 0.5:1 intro | 0.771 | 0.796 | 0.804 | 0.947 | 1048 ms | 2366 ms |
-| rerank blend 1:2 intro | 0.769 | 0.794 | 0.803 | 0.947 | 1324 ms | 3281 ms |
+| keyword | 0.669 | 0.691 | 0.676 | 0.870 | 36 ms | 48 ms |
+| semantic | 0.667 | 0.690 | 0.721 | 0.917 | 108 ms | 125 ms |
+| hybrid | 0.759 | 0.784 | 0.754 | 0.893 | 112 ms | 142 ms |
+| hybrid+rerank | 0.774 | 0.801 | 0.819 | 0.962 | 616 ms | 1379 ms |
+| hybrid (repo lists only) | 0.743 | 0.769 | 0.756 | 0.907 | 105 ms | 137 ms |
+| hybrid (chunk lists only) | 0.637 | 0.658 | 0.654 | 0.853 | 112 ms | 147 ms |
+| hybrid (equal weights) | 0.733 | 0.758 | 0.750 | 0.909 | 88 ms | 146 ms |
+| hybrid (semantic x1.0) | 0.748 | 0.773 | 0.750 | 0.887 | 117 ms | 142 ms |
+| hybrid (semantic x2) | 0.757 | 0.783 | 0.765 | 0.920 | 122 ms | 156 ms |
+| hybrid (lexical x2) | 0.745 | 0.770 | 0.742 | 0.882 | 116 ms | 143 ms |
+| hybrid (no priors) | 0.757 | 0.782 | 0.754 | 0.896 | 116 ms | 140 ms |
+| hybrid (typo tolerance off) | 0.754 | 0.779 | 0.746 | 0.893 | 92 ms | 136 ms |
+| hybrid (query expansion auto) | 0.759 | 0.783 | 0.754 | 0.902 | 117 ms | 157 ms |
+| keyword (typo tolerance off) | 0.641 | 0.662 | 0.642 | 0.831 | 36 ms | 48 ms |
+| semantic+rerank | 0.720 | 0.744 | 0.777 | 0.962 | 578 ms | 1342 ms |
+| rerank blend 1:0.5 best_chunk | 0.767 | 0.794 | 0.815 | 0.944 | 662 ms | 909 ms |
+| rerank blend 1:1 best_chunk | 0.766 | 0.793 | 0.808 | 0.923 | 661 ms | 922 ms |
+| rerank blend 1:0.5 intro | 0.759 | 0.784 | 0.820 | 0.962 | 631 ms | 1375 ms |
+| rerank blend 1:1 intro | 0.774 | 0.801 | 0.819 | 0.962 | 592 ms | 1277 ms |
+| rerank blend 0.5:1 intro | 0.771 | 0.796 | 0.804 | 0.947 | 628 ms | 1360 ms |
+| rerank blend 1:2 intro | 0.769 | 0.794 | 0.803 | 0.947 | 627 ms | 1454 ms |
 
 ## nDCG@10 by query style
 
