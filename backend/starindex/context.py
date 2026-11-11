@@ -33,6 +33,9 @@ class AppContext:
         self.config.paths.ensure()
         self.db = Database(self.config.paths.db_path)
         self.db.migrate()
+        from .indexing.classify import ensure_builtin_categories
+
+        ensure_builtin_categories(self.db)
         self.settings_store = SettingsStore(self.db)
         self._lock = threading.RLock()
         self.worker_mode: str = "none"   # embedded | external | none (set by whoever starts a worker)

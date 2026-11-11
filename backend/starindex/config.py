@@ -34,7 +34,8 @@ class Paths:
 
     @property
     def models_dir(self) -> Path:
-        return self.data_dir / "models"
+        override = os.environ.get("STARINDEX_MODELS_DIR")
+        return Path(override).expanduser() if override else self.data_dir / "models"
 
     @property
     def backups_dir(self) -> Path:

@@ -1,0 +1,243 @@
+@import "tailwindcss";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/jetbrains-mono";
+
+/*
+ * StarIndex design tokens.
+ * Graphite neutrals, one restrained blue accent. State is carried by type, icons and layout,
+ * never by tinted fills or coloured card edges.
+ */
+@theme {
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --color-bg: #0c0d0f;
+  --color-surface: #121416;
+  --color-raised: #181b1e;
+  --color-overlay: #1f2327;
+  --color-hover: #1c1f23;
+  --color-line: #24282d;
+  --color-line-strong: #353a41;
+  --color-fg: #eceef1;
+  --color-fg-2: #b6bcc5;
+  --color-fg-3: #848c97;
+  --color-fg-4: #5a616b;
+  --color-accent: #6aa1ff;
+  --color-accent-solid: #2f6feb;
+  --color-accent-solid-hover: #3d7bf2;
+  --color-danger: #ff6b61;
+  --color-danger-solid: #d63a31;
+  --color-warn: #e0ac4a;
+  --color-ok: #6cc08b;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.0625rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.375rem;
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.5rem;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.5625rem;
+  --text-2xl--line-height: 1.875rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.625rem;
+  --text-4xl--line-height: 2.75rem;
+
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+
+  --shadow-pop: 0 18px 50px -12px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.04);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    font-size: 16px;
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.375rem;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior: none;
+  }
+  #root {
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: rgb(47 111 235 / 0.45);
+    color: #fff;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+  input, textarea, select, button {
+    font: inherit;
+    color: inherit;
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--color-fg-4);
+  }
+  /* Thin, quiet scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.012em;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  code, kbd, pre, samp {
+    font-family: var(--font-mono);
+  }
+  input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+}
+
+@layer components {
+  /* Small-caps style section label, the workhorse of hierarchy in dense panels. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6563rem;
+    line-height: 1rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-fg-3);
+    font-weight: 500;
+  }
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-ligatures: none;
+    letter-spacing: -0.01em;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Search hit: brighter weight with an accent underline — no fill. */
+  mark.hit {
+    background: transparent;
+    color: var(--color-fg);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+  .link {
+    color: var(--color-accent);
+    text-underline-offset: 3px;
+  }
+  .link:hover {
+    text-decoration: underline;
+  }
+  .hairline {
+    box-shadow: inset 0 -1px 0 var(--color-line);
+  }
+
+  /* Rendered markdown (answers, reports, README). */
+  .prose-si {
+    color: var(--color-fg-2);
+    font-size: var(--text-md);
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+  .prose-si > :first-child { margin-top: 0; }
+  .prose-si > :last-child { margin-bottom: 0; }
+  .prose-si h1, .prose-si h2, .prose-si h3, .prose-si h4 {
+    color: var(--color-fg);
+    font-weight: 620;
+    line-height: 1.25;
+    margin: 1.6em 0 0.55em;
+  }
+  .prose-si h1 { font-size: 1.5rem; }
+  .prose-si h2 { font-size: 1.2rem; padding-bottom: 0.35em; box-shadow: inset 0 -1px 0 var(--color-line); }
+  .prose-si h3 { font-size: 1.02rem; }
+  .prose-si h4 { font-size: 0.9375rem; }
+  .prose-si p, .prose-si ul, .prose-si ol, .prose-si blockquote, .prose-si table, .prose-si pre { margin: 0.8em 0; }
+  .prose-si ul { list-style: disc; padding-left: 1.3em; }
+  .prose-si ol { list-style: decimal; padding-left: 1.4em; }
+  .prose-si li { margin: 0.25em 0; }
+  .prose-si li::marker { color: var(--color-fg-4); }
+  .prose-si strong { color: var(--color-fg); font-weight: 620; }
+  .prose-si a { color: var(--color-accent); text-underline-offset: 3px; }
+  .prose-si a:hover { text-decoration: underline; }
+  .prose-si code {
+    font-size: 0.84em;
+    background: var(--color-raised);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    padding: 0.08em 0.35em;
+    color: var(--color-fg);
+  }
+  .prose-si pre {
+    background: #0a0b0c;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    padding: 0.85em 1em;
+    overflow-x: auto;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+  .prose-si pre code { background: none; border: 0; padding: 0; font-size: inherit; color: var(--color-fg-2); }
+  .prose-si blockquote { border-left: 2px solid var(--color-line-strong); padding-left: 1em; color: var(--color-fg-3); }
+  .prose-si hr { border: 0; border-top: 1px solid var(--color-line); margin: 1.6em 0; }
+  .prose-si table { border-collapse: collapse; font-size: 0.8438rem; display: block; overflow-x: auto; max-width: 100%; }
+  .prose-si th { text-align: left; color: var(--color-fg); font-weight: 600; }
+  .prose-si th, .prose-si td { border-bottom: 1px solid var(--color-line); padding: 0.45em 0.9em 0.45em 0; vertical-align: top; }
+  .prose-si img { max-width: 100%; border-radius: var(--radius-sm); }
+  .prose-si.compact { font-size: var(--text-base); line-height: 1.6; }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-raised) 0%, #22262b 45%, var(--color-raised) 90%);
+    background-size: 220% 100%;
+    animation: shimmer 1.5s linear infinite;
+    border-radius: var(--radius-xs);
+  }
+}
+
+@keyframes shimmer { from { background-position: 120% 0; } to { background-position: -100% 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-in-right { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes indeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+@keyframes caret { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+@utility animate-rise { animation: rise 0.32s var(--ease-out-quint) both; }
+@utility animate-fade { animation: fade 0.18s ease-out both; }
+@utility animate-drawer { animation: slide-in-right 0.26s var(--ease-out-quint) both; }
+@utility animate-pop { animation: pop 0.16s var(--ease-out-quint) both; }
+@utility animate-indeterminate { animation: indeterminate 1.3s ease-in-out infinite; }
+@utility animate-caret { animation: caret 1s steps(1) infinite; }
+@utility animate-pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -98,6 +98,8 @@ Search query operators (parsed server-side, reported in `SearchResponse.parsed.o
 | POST | `/collections/{id}/repos` | `RepoIds` | `Collection` |
 | POST | `/collections/{id}/repos/remove` | `RepoIds` | `Collection` |
 | GET | `/tags` | | `Tag[]` |
+| PATCH | `/tags/{name}` | `TagRename` | `Tag[]` (renames; merges into an existing tag of that name) |
+| DELETE | `/tags/{name}` | | `Tag[]` |
 | GET | `/categories` | | `Category[]` |
 | POST | `/categories` | `CategoryCreate` | `Category` |
 | PATCH | `/categories/{id}` | `CategoryPatch` | `Category` |

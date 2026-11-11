@@ -56,7 +56,7 @@ class IndexingSettings(BaseModel):
 
 
 class EmbeddingSettings(BaseModel):
-    backend: Literal["fastembed", "ollama", "openai_compat", "sentence_transformers", "none"] = "fastembed"
+    backend: Literal["fastembed", "ollama", "openai_compat", "sentence_transformers", "hashing", "none"] = "fastembed"
     model: str = "BAAI/bge-small-en-v1.5"
     provider_id: str | None = None      # for ollama / openai_compat backends: which configured provider
     device: Literal["auto", "cpu", "cuda"] = "auto"

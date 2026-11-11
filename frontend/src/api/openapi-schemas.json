@@ -1541,6 +1541,7 @@
               "ollama",
               "openai_compat",
               "sentence_transformers",
+              "hashing",
               "none"
             ],
             "title": "Backend",
@@ -7333,6 +7334,21 @@
         "title": "Tag",
         "type": "object"
       },
+      "TagRename": {
+        "properties": {
+          "name": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "TagRename",
+        "type": "object"
+      },
       "TagsUpdate": {
         "properties": {
           "tags": {
@@ -7423,6 +7439,14 @@
               "type": "integer"
             },
             "title": "Repo Ids",
+            "type": "array"
+          },
+          "repo_names": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Repo Names",
             "type": "array"
           },
           "summary": {

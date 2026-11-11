@@ -44,6 +44,7 @@ ErrorKind = Literal[
     "bad_request",
     "stream_incomplete",  # stream ended without a terminal event
     "invalid_response",   # could not parse what the model returned
+    "refused",            # the model or a safety filter declined the request
 ]
 
 

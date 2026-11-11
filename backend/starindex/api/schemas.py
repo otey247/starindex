@@ -446,6 +446,7 @@ class TraceStep(BaseModel):
     arguments: dict[str, Any] = {}
     summary: str = ""
     repo_ids: list[int] = []
+    repo_names: list[str] = []            # owner/name for repo_ids, same order
     evidence_refs: list[str] = []
     duration_ms: int | None = None
     ok: bool = True
@@ -646,6 +647,10 @@ class RepoIds(BaseModel):
 class Tag(BaseModel):
     name: str
     count: int
+
+
+class TagRename(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
 
 
 class Category(BaseModel):
