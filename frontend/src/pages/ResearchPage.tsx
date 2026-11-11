@@ -325,7 +325,8 @@ export default function ResearchPage() {
                 onSwitch={(opt) => {
                   const next = { provider_id: opt.provider_id, model: opt.default_model ?? "" };
                   setRoute(next);
-                  run(next);
+                  if (next.model) run(next);
+                  else toast.info("Choose a model for that provider above, then run again.");
                 }}
               />
             )}

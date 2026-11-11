@@ -194,7 +194,8 @@ export default function ComparePage() {
                 onSwitch={(opt) => {
                   const next = { provider_id: opt.provider_id, model: opt.default_model ?? "" };
                   setRoute(next);
-                  narrate(next);
+                  if (next.model) narrate(next);
+                  else toast.info("Choose a model for that provider above, then generate again.");
                 }}
               />
             )}

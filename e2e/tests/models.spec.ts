@@ -85,10 +85,17 @@ test.describe("settings and model switching", () => {
     await page.waitForTimeout(1500);
     expect(askRequests, "no automatic retry or fallback").toBe(1);
 
-    // an explicit click runs it again on the chosen provider
+    // an explicit choice of provider — and of model, since that provider has no routed default —
+    // is needed before anything is sent again
     await panel.getByRole("button", { name: new RegExp(PROVIDER) }).click();
+    await expect(page.getByText(/Choose a model for that provider/)).toBeVisible();
+    await page.waitForTimeout(500);
+    expect(askRequests, "switching alone sends nothing").toBe(1);
+    await page.getByLabel("Model for this request").selectOption("fake-good");
+    await panel.getByRole("button", { name: /Try again|Retry/ }).click();
     await expect(page.getByTestId("ask-turn").last().getByRole("button", { name: "Save report" })).toBeVisible({ timeout: 30_000 });
     expect(askRequests).toBe(2);
+    await expect(page.getByTestId("ask-turn").last()).toContainText(PROVIDER);
   });
 
   test("a stream that dies is reported as incomplete, not as an answer", async ({ page }) => {
@@ -116,6 +123,26 @@ test.describe("settings and model switching", () => {
     await page.goto("/settings/chatgpt");
     await expect(page.getByRole("button", { name: "Continue with ChatGPT" })).toBeEnabled();
     await expect(page.getByRole("link", { name: /Manage usage/ }).first()).toHaveAttribute("href", "https://chatgpt.com/settings/usage");
+
+    // Starting sign-in yields an authorization URL for the system browser. The page is not
+    // opened here (no OpenAI session exists in tests), so window.open is stubbed out.
+    await page.evaluate(() => {
+      window.open = () => null;
+    });
+    await page.getByRole("button", { name: "Continue with ChatGPT" }).click();
+    await expect(page.getByText("Finish signing in in your browser")).toBeVisible();
+    const authLink = page.getByRole("link", { name: /Open the sign-in page again/ });
+    await expect(authLink).toHaveAttribute("href", /^https:\/\/auth\.openai\.com\/api\/accounts\/authorize\?/);
+    const href = (await authLink.getAttribute("href"))!;
+    const params = new URL(href).searchParams;
+    expect(params.get("client_id")).toBe("dynamic_agent_client");
+    expect(params.get("code_challenge_method")).toBe("S256");
+    expect(params.get("scope")).toContain("chatgpt.tokens.use.direct");
+    expect(params.get("redirect_uri")).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/auth\/callback$/);
+    expect(params.get("state")).toBeTruthy();
+    expect(params.get("nonce")).toBeTruthy();
+    await page.getByRole("button", { name: "Cancel" }).click();
+
     await page.goto("/settings/privacy");
     await cloud.click();
     await expect(cloud).toHaveAttribute("aria-checked", "false");
@@ -126,7 +153,7 @@ test.describe("settings and model switching", () => {
     await expect(page.getByRole("radiogroup", { name: "Default index level" })).toBeVisible();
     await page.goto("/settings/search");
     await expect(page.getByLabel("Embedding model")).toHaveValue(/.+/);
-    await expect(page.getByText(/CPU threads/)).toBeVisible();
+    await expect(page.getByText(/CPU threads/).first()).toBeVisible();
     await page.goto("/settings/storage");
     await expect(page.getByText("Database (library, text, embeddings)")).toBeVisible();
     await page.getByRole("button", { name: "Back up now" }).click();

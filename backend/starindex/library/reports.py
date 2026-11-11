@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..api.schemas import CollectionRef, Evidence, Report, ReportSummary, TraceStep, UnsupportedCitation, UsageInfo
+from ..api.schemas import (
+    CollectionRef,
+    Evidence,
+    Report,
+    ReportSummary,
+    TraceStep,
+    UnsupportedCitation,
+    UsageInfo,
+)
 from ..db import Database, dumps, loads, utcnow
 from . import repos as repo_store
 

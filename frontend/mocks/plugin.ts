@@ -1505,15 +1505,12 @@ const routingOut = () => ({
 });
 on("GET", "/routing", () => routingOut());
 on("PUT", "/routing", ({ body }) => {
-  if ("default" in body) {
-    state.routing.default = body.default;
-    const p = state.providers.find((x) => x.id === body.default?.provider_id);
-    state.llm = !body.default ? "none" : p?.kind === "chatgpt_plan" ? "chatgpt" : p && !p.capabilities.is_local ? "cloud" : "local";
-  }
-  for (const [task, route] of Object.entries(body.tasks ?? {})) {
-    if (route) state.routing.tasks[task] = route as { provider_id: string; model: string };
-    else delete state.routing.tasks[task];
-  }
+  // Same semantics as the real API: the request replaces the whole routing table.
+  state.routing.default = body.default ?? null;
+  const p = state.providers.find((x) => x.id === body.default?.provider_id);
+  state.llm = !body.default ? "none" : p?.kind === "chatgpt_plan" ? "chatgpt" : p && !p.capabilities.is_local ? "cloud" : "local";
+  state.routing.tasks = {};
+  for (const [task, route] of Object.entries(body.tasks ?? {})) if (route) state.routing.tasks[task] = route as { provider_id: string; model: string };
   return routingOut();
 });
 on("GET", "/usage", ({ query }) => ({

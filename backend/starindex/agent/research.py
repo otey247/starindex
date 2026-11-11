@@ -23,11 +23,10 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
 
 from ..api.schemas import ResearchRequest, TraceStep
-from ..db import loads
 from ..library import reports as report_store
 from ..library.repos import maintenance_status
 from ..providers.base import ChatMessage, GenerationRequest, ProviderError
-from .ask import GROUNDING_RULES, Event, UsageMeter, error_event, status_payload, stream_text, to_route
+from .ask import CITE_REMINDER, GROUNDING_RULES, Event, UsageMeter, error_event, status_payload, stream_text, to_route
 from .compare import license_notes
 from .evidence import CITATION, EvidenceSet, check_answer
 from .safety import UNTRUSTED_NOTICE, neutralize
@@ -126,7 +125,8 @@ class ResearchRun:
         self.max_context_chars = (o.max_context_chars if o and o.max_context_chars else s.max_context_chars)
         self.max_total_tokens = s.max_total_tokens
         self.max_output_tokens = s.max_output_tokens
-        self.evidence = EvidenceSet(ctx, max_chars=self.max_context_chars)
+        # Keep single items small enough that a tight budget still holds evidence from many repositories.
+        self.evidence = EvidenceSet(ctx, max_chars=self.max_context_chars, max_item_chars=max(400, min(1800, self.max_context_chars // 24)))
         scope: list[int] = list(req.repo_ids)
         if req.collection_id is not None:
             row = ctx.db.one("SELECT kind FROM collections WHERE id=?", (req.collection_id,))
@@ -205,11 +205,12 @@ class ResearchRun:
 
     def _seed_actions(self) -> list[dict[str, Any]]:
         q = self.req.question.strip()[:300]
-        actions: list[dict[str, Any]] = [
-            {"tool": "search_repositories", "arguments": {"query": q, "limit": 10}},
-            {"tool": "search_documents", "arguments": {"query": q, "limit": 6}},
+        # The seed must leave room in the evidence budget for the follow-up lookups.
+        repos = max(4, min(10, self.max_context_chars // 3600))
+        return [
+            {"tool": "search_repositories", "arguments": {"query": q, "limit": repos}},
+            {"tool": "search_documents", "arguments": {"query": q, "limit": max(3, min(6, repos // 2 + 1))}},
         ]
-        return actions
 
     def _fallback_actions(self) -> list[dict[str, Any]]:
         """Default follow-up when the planner cannot produce valid JSON: inspect the top candidates."""
@@ -350,7 +351,8 @@ class ResearchRun:
                          evidence_refs=[e.ref for e in self.evidence.items][:60], repo_ids=self.evidence.repo_ids[:60])
         prompt = (
             f"Research question: {neutralize(req.question)}\n\nUse this outline (omit a section only if it does not apply):\n{OUTLINES[req.capability]}\n\n"
-            f"What was investigated:\n{neutralize(chr(10).join(d.split(' -> ')[0] for d in self.digests))}\n\nEvidence:\n{self.evidence.render()}"
+            f"What was investigated:\n{neutralize(chr(10).join(d.split(' -> ')[0] for d in self.digests))}\n\nEvidence:\n{self.evidence.render()}\n\n"
+            f"Research question again: {neutralize(req.question)}\n{CITE_REMINDER} Follow the outline above."
         )
         request = GenerationRequest(
             model=resolved.model, system=SYNTHESIS_SYSTEM, messages=[ChatMessage(role="user", content=prompt)],

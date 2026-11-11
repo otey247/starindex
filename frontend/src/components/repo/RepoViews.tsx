@@ -54,18 +54,18 @@ export function RepoTable({
   const someSelected = selected ? repos.some((r) => selected.has(r.id)) : false;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[860px] table-fixed border-collapse text-sm">
+      <table className="w-full min-w-[780px] table-fixed border-collapse text-sm">
         <colgroup>
           {selected && <col className="w-10" />}
           {showRank && <col className="w-10" />}
           <col />
-          <col className="w-[68px]" />
-          <col className="w-[104px]" />
-          <col className="w-[100px]" />
-          <col className="w-[82px]" />
-          <col className="w-[82px]" />
+          <col className="w-[64px]" />
           <col className="w-[98px]" />
-          <col className="w-[84px]" />
+          <col className="hidden w-[96px] 2xl:table-column" />
+          <col className="w-[78px]" />
+          <col className="w-[78px]" />
+          <col className="w-[92px]" />
+          <col className="w-[76px]" />
         </colgroup>
         <thead>
           <tr className="border-b border-line">
@@ -83,7 +83,7 @@ export function RepoTable({
             <Th sortKey="name" sort={sort}>Repository</Th>
             <Th sortKey="stars" sort={sort} className="text-right">Stars</Th>
             <Th>Language</Th>
-            <Th>License</Th>
+            <Th className="hidden 2xl:table-cell">License</Th>
             <Th sortKey="pushed_at" sort={sort}>Pushed</Th>
             <Th sortKey="starred_at" sort={sort}>Starred</Th>
             <Th>Status</Th>
@@ -118,7 +118,7 @@ export function RepoTable({
               </td>
               <td className="px-3 py-1.5 text-right text-fg-2 tnum">{formatCount(repo.stars)}</td>
               <td className="mono truncate px-3 py-1.5 text-xs text-fg-2">{repo.language ?? "—"}</td>
-              <td className="truncate px-3 py-1.5 text-xs text-fg-3">{repo.license_spdx ?? "—"}</td>
+              <td className="hidden truncate px-3 py-1.5 text-xs text-fg-3 2xl:table-cell">{repo.license_spdx ?? "—"}</td>
               <td className="whitespace-nowrap px-3 py-1.5 text-xs text-fg-3">{timeAgo(repo.pushed_at)}</td>
               <td className="whitespace-nowrap px-3 py-1.5 text-xs text-fg-3">{timeAgo(repo.starred_at)}</td>
               <td className="px-3 py-1.5 text-xs">

@@ -17,7 +17,7 @@ with urllib.request.urlopen(req, timeout=600) as resp:
         elif line.startswith("data:"):
             d = json.loads(line[5:])
             if event == "evidence":
-                print("evidence +%d" % len(d["evidence"]))
+                print(f"evidence +{len(d['evidence'])}")
             elif event == "delta":
                 pass
             elif event == "step":

@@ -646,7 +646,7 @@ export function DiagnosticsSettings() {
         <p className="text-sm text-fg-3">
           {diag.data ? (
             <>
-              {problems === 0 ? "Everything checks out." : `${problems} item${problems === 1 ? "" : "s"} need attention.`} Checked {timeAgo(diag.data.generated_at)}.
+              {problems === 0 ? "Everything checks out." : `${problems} item${problems === 1 ? " needs" : "s need"} attention.`} Checked {timeAgo(diag.data.generated_at)}.
             </>
           ) : (
             "Running checks…"

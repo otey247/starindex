@@ -47,7 +47,7 @@ def fetch_metadata(client: httpx.Client, names: list[str]) -> dict[str, dict]:
         batches.append(batch)
     for i, group in enumerate(batches):
         q = " ".join(f"repo:{n}" for n in group) + " fork:true"
-        for attempt in range(5):
+        for _attempt in range(5):
             resp = client.get("https://api.github.com/search/repositories", params={"q": q, "per_page": 20},
                               headers={"Accept": "application/vnd.github+json"})
             if resp.status_code == 200:

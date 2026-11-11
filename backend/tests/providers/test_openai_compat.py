@@ -261,3 +261,35 @@ def test_extra_headers_cannot_override_authentication():
 
 def test_parse_helper_is_shared():
     assert parse_json_output('{"k": 1}') == {"k": 1}
+
+
+def test_server_that_answers_500_to_unknown_response_format_is_renegotiated():
+    """llama-cpp-python's server rejects response_format json_schema with HTTP 500 (found in a live run)."""
+    seen: list[str | None] = []
+
+    def handler(req):
+        body = __import__("json").loads(req.content)
+        fmt = (body.get("response_format") or {}).get("type")
+        seen.append(fmt)
+        if fmt == "json_schema":
+            detail = "1 validation error: {'loc': ('body', 'response_format', 'type'), 'msg': \"Input should be 'text' or 'json_object'\", 'input': 'json_schema'}"
+            return httpx.Response(500, json={"error": {"message": detail}})
+        return httpx.Response(200, content=sse(chunk('{"answer": "42"}'), chunk(finish="stop"), done=True))
+
+    p, _ = provider(handler)
+    parsed, _ = p.generate_json(request(schema=SCHEMA))
+    assert parsed == {"answer": "42"} and seen == ["json_schema", "json_object"]
+    assert p.capabilities().structured_output == "json_object"
+
+
+def test_plain_server_error_is_not_renegotiated():
+    calls = []
+
+    def handler(req):
+        calls.append(1)
+        return httpx.Response(500, json={"error": {"message": "internal error while loading the model"}})
+
+    p, _ = provider(handler)
+    with pytest.raises(ProviderError) as err:
+        p.generate_json(request(schema=SCHEMA))
+    assert err.value.kind == "unavailable" and len(calls) == 1

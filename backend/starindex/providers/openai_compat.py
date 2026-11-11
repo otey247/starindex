@@ -224,9 +224,14 @@ class OpenAICompatProvider(HttpChatProvider):
 
     def _renegotiate(self, error: ProviderError, body: dict[str, Any]) -> bool:
         """Adjust instance state after a 400 that blames an optional parameter. True = retry."""
-        if error.status not in (400, 404, 422) or error.kind in ("auth", "context_length"):
+        if error.status not in (400, 404, 422, 500, 501) or error.kind in ("auth", "context_length"):
             return False
         text = f"{error.message} {error.param or ''} {error.code or ''}".lower()
+        if error.status in (500, 501):
+            # Some servers (llama-cpp-python) answer 500 when request validation rejects an unknown
+            # response_format type. Only that explicit case is renegotiated; other 5xx are real failures.
+            if not ("response_format" in body and re.search(r"response_format|json_schema", text)):
+                return False
         if "response_format" in body and re.search(r"response_format|json_schema|json_object|json mode|structured|schema", text):
             index = _LEVELS.index(self._structured_level)
             if index + 1 < len(_LEVELS):

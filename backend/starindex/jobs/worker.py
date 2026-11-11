@@ -15,7 +15,7 @@ import traceback
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-from ..db import dumps, parse_ts, utcnow
+from ..db import parse_ts, utcnow
 from .handle import JobHandle
 from .handlers import HANDLERS
 from .queue import JobCancelled, LeaseLost, RetryLater, WorkerStopping

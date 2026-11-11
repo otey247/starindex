@@ -530,7 +530,7 @@ function RoutingSection({ providers }: { providers: ProviderInfo[] }) {
           <p className="text-base font-semibold text-fg">Default model</p>
           <p className="text-sm text-fg-3">Used by every task that has no route of its own.</p>
         </div>
-        <RoutePicker label="Default" value={r.default ?? null} providers={providers} onChange={(next) => save.mutate({ default: next })} />
+        <RoutePicker label="Default" value={r.default ?? null} providers={providers} onChange={(next) => save.mutate({ default: next, tasks: r.tasks })} />
       </div>
       {TASKS.map((task) => {
         const own = r.tasks[task] ?? null;
@@ -544,7 +544,14 @@ function RoutingSection({ providers }: { providers: ProviderInfo[] }) {
                 {!own && eff ? <span className="mono ml-1.5 text-fg-4">→ {eff.provider_id} · {eff.model}</span> : null}
               </p>
             </div>
-            <RoutePicker label={TASK_LABEL[task] ?? task} value={own} providers={providers} allowDefault onChange={(next) => save.mutate({ tasks: { [task]: next } })} />
+            <RoutePicker
+              label={TASK_LABEL[task] ?? task}
+              value={own}
+              providers={providers}
+              allowDefault
+              // PUT /routing replaces the whole table, so always send the default and every task.
+              onChange={(next) => save.mutate({ default: r.default ?? null, tasks: { ...r.tasks, [task]: next } })}
+            />
           </div>
         );
       })}

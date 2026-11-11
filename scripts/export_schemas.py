@@ -13,9 +13,9 @@ from pathlib import Path
 from pydantic import BaseModel
 from pydantic.json_schema import models_json_schema
 
+from starindex import settings_store
 from starindex.api import schemas
 from starindex.providers import base as provider_base
-from starindex import settings_store
 
 
 def collect() -> list[type[BaseModel]]:

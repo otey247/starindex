@@ -160,7 +160,8 @@ function AiText({ repo, kind }: { repo: RepoDetail; kind: "summary" | "usage_ide
               const next = { provider_id: opt.provider_id, model: opt.default_model ?? "" };
               setRoute(next);
               setShowPicker(true);
-              generate(next);
+              if (next.model) generate(next);
+              else toast.info("Choose a model for that provider, then generate again.");
             }}
           />
         )}

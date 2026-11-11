@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 from starindex.indexing import selection
-from starindex.indexing.chunking import assign_uids, chunk_code, chunk_document, chunk_markdown, looks_like_injection
+from starindex.indexing.chunking import (
+    assign_uids,
+    chunk_code,
+    chunk_document,
+    chunk_markdown,
+    looks_like_injection,
+)
 from starindex.indexing.manifests import parse_manifest
 from starindex.indexing.pipeline import enqueue_index, index_repo
 from starindex.settings_store import IndexingSettings

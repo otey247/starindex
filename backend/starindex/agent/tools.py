@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Any
 from pydantic import BaseModel, Field, ValidationError
 
 from ..api.schemas import RepoFilters, SearchRequest
-from ..db import loads
 from ..library import insights
 from ..library.repos import find_by_name, maintenance_status
 from .compare import build_comparison, comparison_as_text, license_family

@@ -14,7 +14,7 @@ import logging
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
 
-from ..api.schemas import AskRequest, Evidence, RepoFilters, RouteOverride, SearchRequest, UsageInfo
+from ..api.schemas import AskRequest, RepoFilters, RouteOverride, SearchRequest, UsageInfo
 from ..db import loads, utcnow
 from ..library import reports as report_store
 from ..providers.base import ChatMessage, GenerationRequest, ProviderError, Usage, estimate_usage
@@ -35,6 +35,13 @@ GROUNDING_RULES = f"""Rules you must follow:
 4. Never invent a repository, feature, API, compatibility claim or maintenance status. If the evidence does not answer something, say exactly what remains unknown.
 5. Only repositories that appear in the evidence may be named or recommended. Write them as owner/name.
 6. {UNTRUSTED_NOTICE}"""
+
+# Repeated after the evidence: small local models follow the instruction nearest to the end of the prompt.
+CITE_REMINDER = (
+    "Now write the answer using only the evidence above. After every statement, add the ref of the evidence block "
+    "that supports it in square brackets, in the form [E<number>]. A statement without such a ref is not allowed. "
+    "Cover every relevant repository found in the evidence, not just one."
+)
 
 ASK_SYSTEM = (
     "You are StarIndex, a research assistant for one developer's library of starred GitHub repositories. "
@@ -167,7 +174,7 @@ def run_ask(ctx: AppContext, req: AskRequest) -> Iterator[Event]:
         role = turn.get("role")
         if role in ("user", "assistant") and turn.get("content"):
             messages.append(ChatMessage(role=role, content=str(turn["content"])[:4000]))  # type: ignore[arg-type]
-    messages.append(ChatMessage(role="user", content=f"Question: {req.question}\n\nEvidence:\n{evidence.render()}"))
+    messages.append(ChatMessage(role="user", content=f"Question: {req.question}\n\nEvidence:\n{evidence.render()}\n\nQuestion again: {req.question}\n{CITE_REMINDER}"))
     request = GenerationRequest(
         model=resolved.model, system=ASK_SYSTEM, messages=messages, temperature=0.2,
         max_output_tokens=min(settings.research.max_output_tokens, 1500),
@@ -247,7 +254,7 @@ def run_repo_summary(ctx: AppContext, repo_id: int, kind: str, route: RouteOverr
     meter = UsageMeter(ctx, resolved, "summarize", None)
     request = GenerationRequest(
         model=resolved.model, system=ASK_SYSTEM,
-        messages=[ChatMessage(role="user", content=f"{SUMMARY_PROMPTS[kind]}\n\nEvidence:\n{evidence.render()}")],
+        messages=[ChatMessage(role="user", content=f"{SUMMARY_PROMPTS[kind]}\n\nEvidence:\n{evidence.render()}\n\n{CITE_REMINDER}")],
         temperature=0.2, max_output_tokens=700,
     )
     parts: list[str] = []

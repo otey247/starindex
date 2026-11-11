@@ -22,9 +22,9 @@ from ...providers.base import ChatMessage, GenerationRequest, ProviderError
 from ..deps import ApiError, get_ctx, not_found
 from ..schemas import (
     AskRequest,
-    Comparison,
     CompareNarrativeRequest,
     CompareRequest,
+    Comparison,
     EvidenceDetail,
     LlmStatus,
     Ok,
@@ -177,7 +177,7 @@ def compare_narrative(req: CompareNarrativeRequest, ctx: AppContext = Depends(ge
             "Compare these repositories for a developer choosing between or combining them. Cover: what each is for, capabilities "
             "each project documents, architecture and dependencies, maturity and maintenance, licensing, and when to prefer each. "
             f"End with the open questions the evidence cannot answer.{focus}\n\nFacts table (observed metadata):\n"
-            f"{comparison_as_text(comparison)}\n\nEvidence:\n{evidence.render()}"
+            f"{comparison_as_text(comparison)}\n\nEvidence:\n{evidence.render()}\n\n{ask_flow.CITE_REMINDER}"
         )
         request = GenerationRequest(
             model=resolved.model, system=ask_flow.ASK_SYSTEM, messages=[ChatMessage(role="user", content=prompt)],

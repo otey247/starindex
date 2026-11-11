@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import platform
 import sqlite3
-import sys
-from typing import Any, Literal
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
@@ -16,7 +15,7 @@ from ...context import AppContext
 from ...db import utcnow
 from ...github import auth as gh_auth
 from ...settings_store import AppSettings
-from ...storage import create_backup, export_library, list_backups, restore_backup, storage_info
+from ...storage import export_library, list_backups, restore_backup, storage_info
 from ..deps import ApiError, get_ctx
 from ..schemas import (
     BackupInfo,

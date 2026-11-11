@@ -5,7 +5,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from ...context import AppContext
-from ...db import loads
 from ...github import auth as gh_auth
 from ...jobs.queue import JobRecord
 from ...secrets import GITHUB_TOKEN
@@ -19,7 +18,6 @@ from ..schemas import (
     JobPage,
     Ok,
     QueueSummary,
-    RateLimitInfo,
     Schedule,
     SchedulePatch,
     SyncRun,

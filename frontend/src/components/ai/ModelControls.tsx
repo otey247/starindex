@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRight, Cloud, Cpu, ExternalLink, HardDrive, Settings2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { useModelOptions } from "@/api/queries";
@@ -8,6 +8,7 @@ import type { ModelOptions, ProviderErrorInfo, ProviderOption, RouteOverride, Us
 import { Button, Dialog, Select } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { formatCost, formatNumber } from "@/lib/format";
+import { toast } from "@/state/stores";
 
 export const CHATGPT_USAGE_URL = "https://chatgpt.com/settings/usage";
 
@@ -104,12 +105,6 @@ export function ModelPicker({
   const eff = effectiveRoute(data, value);
   const chatModels = (models.data?.models ?? []).filter((m) => m.kind === "chat" || m.kind === "unknown");
 
-  // A provider without a default model gets its first discovered chat model, so a request
-  // is never sent with an empty model id.
-  useEffect(() => {
-    if (value && !value.model && chatModels.length > 0) onChange({ provider_id: value.provider_id, model: chatModels[0]!.id });
-  }, [value, chatModels, onChange]);
-
   const pickProvider = (id: string) => {
     if (!id) return onChange(null);
     const opt = data?.options.find((o) => o.provider_id === id);
@@ -157,7 +152,7 @@ export function ModelPicker({
           className="max-w-[240px]"
         >
           {!chatModels.some((m) => m.id === value.model) && (
-            <option value={value.model}>{value.model || (models.isLoading ? "Loading models…" : "Choose a model")}</option>
+            <option value={value.model}>{value.model || (models.isLoading ? "Loading models…" : "Choose a model…")}</option>
           )}
           {chatModels.map((m) => (
             <option key={m.id} value={m.id}>
@@ -399,6 +394,11 @@ export function useCloudGate(route: RouteOverride | null) {
   const needsConfirm = eff.configured && eff.isCloud && (options.data?.confirm_before_cloud ?? true);
 
   const run = (fn: (confirmCloud: boolean) => void, force = false) => {
+    // A provider was picked for this request but no model yet: never send an empty model id.
+    if (route && !route.model) {
+      toast.info(`Choose a model for ${eff.providerName ?? "this provider"} first.`);
+      return;
+    }
     if (needsConfirm || force) setPending(() => fn);
     else fn(false);
   };

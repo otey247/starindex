@@ -57,7 +57,7 @@ def score_query(ranked: list[str], relevant: dict[str, int]) -> dict[str, float]
     return {"recall": recall, "recall_capped": recall_capped, "ndcg": ndcg, "mrr": rr}
 
 
-def build(data_dir: Path, *, seed_db: str | None, models_dir: str | None, model: str | None) -> "AppContext":  # noqa: F821
+def build(data_dir: Path, *, seed_db: str | None, models_dir: str | None, model: str | None) -> AppContext:  # noqa: F821
     from starindex.jobs.worker import Worker
     from starindex.testing.corpus import fake_from_corpus
     from starindex.testing.harness import make_context

@@ -344,7 +344,19 @@ export default function SearchPage() {
     [state.filters, collections.data, categories.data],
   );
 
-  const repos = useMemo(() => (data?.results ?? []).map((r) => r.repo), [data]);
+  // Passage scopes return one result per passage; show them grouped under their repository.
+  const results = useMemo(() => {
+    const list = data?.results ?? [];
+    if (!data || data.scope === "repos") return list;
+    const byRepo = new Map<number, (typeof list)[number]>();
+    for (const r of list) {
+      const existing = byRepo.get(r.repo.id);
+      if (existing) existing.matches = [...existing.matches, ...r.matches];
+      else byRepo.set(r.repo.id, { ...r, matches: [...r.matches] });
+    }
+    return [...byRepo.values()];
+  }, [data]);
+  const repos = useMemo(() => results.map((r) => r.repo), [results]);
   const nav = useResultNav(repos, shouldSearch);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
@@ -497,7 +509,7 @@ export default function SearchPage() {
             ) : data.results.length === 0 ? (
               <EmptyState
                 icon={<SearchIcon />}
-                title="No repositories match"
+                title={state.scope === "repos" ? "No repositories match" : "No passages match"}
                 action={
                   <>
                     {activeCount > 0 && <Button onClick={() => dispatchFilter({ type: "clear" })}>Clear {activeCount} filter{activeCount === 1 ? "" : "s"}</Button>}
@@ -511,17 +523,23 @@ export default function SearchPage() {
                 }
               >
                 Nothing in your library matched <span className="font-medium text-fg-2">“{data.query}”</span>
-                {activeCount > 0 ? " with the current filters" : ""}. Semantic and hybrid modes find related projects even when the words differ.
+                {activeCount > 0 ? " with the current filters" : ""}.{" "}
+                {state.scope === "code"
+                  ? "Code search only covers repositories indexed at the deep level. Upgrade the ones you care about from the Library or a repository page."
+                  : state.scope === "docs"
+                    ? "Documentation search covers README files, docs and manifests of indexed repositories."
+                    : "Semantic and hybrid modes find related projects even when the words differ."}
               </EmptyState>
             ) : (
               <div className={cn("transition-opacity", search.isPlaceholderData && "opacity-60")}>
                 {state.view === "list" &&
-                  data.results.map((r, i) => (
+                  results.map((r, i) => (
                     <RepoRow
                       key={r.repo.id}
                       repo={r.repo}
                       rank={(state.page - 1) * PAGE_SIZE + i + 1}
                       matches={r.matches}
+                      maxMatches={state.scope === "repos" ? 3 : 6}
                       signals={r.signals}
                       score={r.score}
                       highlights={r.field_highlights}

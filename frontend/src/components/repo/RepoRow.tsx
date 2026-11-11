@@ -61,6 +61,7 @@ export interface RepoRowProps {
   repo: RepoSummary;
   rank?: number;
   matches?: Match[];
+  maxMatches?: number;
   signals?: ResultSignals;
   score?: number;
   highlights?: Record<string, string>;
@@ -80,6 +81,7 @@ export const RepoRow = memo(function RepoRow({
   repo,
   rank,
   matches = [],
+  maxMatches = 3,
   signals,
   score,
   highlights,
@@ -162,9 +164,10 @@ export const RepoRow = memo(function RepoRow({
 
         {matches.length > 0 && (
           <div className="mt-2.5 flex flex-col gap-2 border-l border-line-strong pl-3">
-            {matches.slice(0, 3).map((m) => (
+            {matches.slice(0, maxMatches).map((m) => (
               <MatchSnippet key={m.chunk_id} match={m} />
             ))}
+            {matches.length > maxMatches && <p className="text-2xs text-fg-4">+{matches.length - maxMatches} more passages in this repository</p>}
           </div>
         )}
 

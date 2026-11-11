@@ -10,6 +10,7 @@ import { useAiStream, type AiStreamState } from "@/components/ai/useAiStream";
 import { Button, Chip, ProgressBar } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { stripHighlights } from "@/lib/highlight";
+import { toast } from "@/state/stores";
 
 interface Turn {
   id: number;
@@ -170,6 +171,10 @@ export default function AskPage() {
     const q = question.trim();
     if (!q || running) return;
     const useRoute = routeOverride === undefined ? route : routeOverride;
+    if (useRoute && !useRoute.model) {
+      toast.info("Choose a model for the selected provider first.");
+      return;
+    }
     const prior = replaceCurrent ? history : turns;
     const start = (confirmCloud: boolean) => {
       if (!replaceCurrent && liveTurn) setHistory((h) => [...h, liveTurn]);
@@ -298,7 +303,9 @@ export default function AskPage() {
                     onRetry={() => ask(turn.question, route, true)}
                     onSwitch={(next) => {
                       setRoute(next);
-                      ask(turn.question, next, true);
+                      // Without a model for that provider, wait for the user to choose one.
+                      if (next.model) ask(turn.question, next, true);
+                      else toast.info("Choose a model for that provider above, then try again.");
                     }}
                     onReport={(report) => {
                       if (isLive) stream.setState((st) => ({ ...st, report }));

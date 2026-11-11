@@ -202,8 +202,8 @@ def classify_repo(ctx: AppContext, repo_id: int, *, vector: np.ndarray | None = 
 
 def classify_all(ctx: AppContext, job=None, *, only_unclassified: bool = False) -> int:
     """Re-run rule + embedding classification for the library (uses cached repository vectors)."""
-    from .pipeline import repo_embed_text
     from .chunking import content_hash
+    from .pipeline import repo_embed_text
 
     db = ctx.db
     emb = ctx.embeddings

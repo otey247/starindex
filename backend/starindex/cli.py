@@ -114,6 +114,9 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     ctx = _ctx()
     worst = 0
     for check in diagnostics(ctx).checks:
+        if check.name == "Background worker" and check.status == "fail":
+            # From the command line this only means the application is not running right now.
+            check.status, check.detail, check.hint = "info", "StarIndex is not running at the moment.", "Start it with scripts/start.ps1 (or `starindex serve`)."
         mark = {"ok": "ok  ", "info": "info", "warn": "WARN", "fail": "FAIL"}[check.status]
         print(f"[{mark}] {check.name}: {check.detail}" + (f"\n       → {check.hint}" if check.hint else ""))
         if check.status == "fail" and check.name not in ("Background worker", "GitHub"):

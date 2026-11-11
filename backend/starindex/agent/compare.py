@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from ..api.schemas import Comparison, CompareRow, SharedItem
+from ..api.schemas import CompareRow, Comparison, SharedItem
 from ..db import loads
 from ..library import repos as repo_store
 from ..library.repos import maintenance_status
