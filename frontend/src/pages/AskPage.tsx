@@ -343,11 +343,11 @@ export default function AskPage() {
               className="max-h-40 min-h-8 flex-1 resize-none bg-transparent px-2 py-1.5 text-md text-fg outline-none placeholder:text-fg-4"
             />
             {running ? (
-              <Button variant="secondary" icon={<Square className="size-3" />} onClick={stream.cancel}>
+              <Button key="stop" variant="secondary" icon={<Square className="size-3" />} onClick={stream.cancel}>
                 Stop
               </Button>
             ) : (
-              <Button type="submit" variant="primary" disabled={!draft.trim()} icon={<ArrowUp className="size-3.5" />}>
+              <Button key="ask" type="submit" variant="primary" disabled={!draft.trim()} icon={<ArrowUp className="size-3.5" />}>
                 Ask
               </Button>
             )}

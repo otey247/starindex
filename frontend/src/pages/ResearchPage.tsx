@@ -170,11 +170,11 @@ export default function ResearchPage() {
             <ModelPicker value={route} onChange={setRoute} disabled={running} />
             <div className="ml-auto flex items-center gap-2">
               {running ? (
-                <Button icon={<Square className="size-3" />} onClick={cancel}>
+                <Button key="stop" icon={<Square className="size-3" />} onClick={cancel}>
                   Stop
                 </Button>
               ) : (
-                <Button type="submit" variant="primary" disabled={!question.trim()} icon={<Play className="size-3.5" />}>
+                <Button key="run" type="submit" variant="primary" disabled={!question.trim()} icon={<Play className="size-3.5" />}>
                   Run research
                 </Button>
               )}

@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { LLM_URL } from "../env";
-import { watchForErrors } from "./helpers";
+import { RUN, watchForErrors } from "./helpers";
+
+const PROVIDER = `Second server ${RUN}`;
+const PROVIDER_ID = `second-server-${RUN}`;
 
 // These tests change provider configuration, so they run in order.
 test.describe.configure({ mode: "serial" });
@@ -21,17 +24,17 @@ test.describe("settings and model switching", () => {
 
     await page.getByRole("button", { name: "Add provider" }).first().click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("button", { name: /OpenAI-compatible/ }).click();
-    await dialog.getByLabel("Name").fill("Second model server");
+    await dialog.getByRole("button", { name: /^OpenAI-compatible server/ }).click();
+    await dialog.getByLabel("Name").fill(PROVIDER);
     await dialog.getByLabel("Base URL").fill(LLM_URL);
     await dialog.getByRole("button", { name: "Add provider" }).click();
     await expect(dialog).toBeHidden();
 
-    const row = page.getByTestId("provider-second-model-server");
+    const row = page.getByTestId(`provider-${PROVIDER_ID}`);
     await expect(row).toBeVisible();
     await row.getByRole("button", { name: "Test" }).click();
     await expect(row.getByTestId("provider-test-result")).toContainText("Connection works");
-    await row.getByRole("button", { name: "Configure Second model server" }).click();
+    await row.getByRole("button", { name: `Configure ${PROVIDER}` }).click();
     await expect(row.getByText("fake-good", { exact: true })).toBeVisible();
     await expect(row.getByText("fake-injected", { exact: true })).toBeVisible();
     // the API key field is write-only
@@ -42,11 +45,11 @@ test.describe("settings and model switching", () => {
 
   test("route a task to another provider and model", async ({ page }) => {
     await page.goto("/settings/models");
-    await page.getByLabel("Comparison reports provider").selectOption({ label: "Second model server" });
+    await page.getByLabel("Comparison reports provider").selectOption({ label: PROVIDER });
     await page.getByLabel("Comparison reports model").selectOption("fake-good");
     await expect
       .poll(async () => (await (await page.request.get("/api/routing")).json()).tasks.compare)
-      .toEqual({ provider_id: "second-model-server", model: "fake-good" });
+      .toEqual({ provider_id: PROVIDER_ID, model: "fake-good" });
     // back to the default
     await page.getByLabel("Comparison reports provider").selectOption({ label: "Use default" });
     await expect.poll(async () => (await (await page.request.get("/api/routing")).json()).tasks.compare ?? null).toBeNull();
@@ -54,15 +57,15 @@ test.describe("settings and model switching", () => {
 
   test("switch provider and model for a single Ask request", async ({ page }) => {
     await page.goto("/ask");
-    await page.getByLabel("Model provider for this request").selectOption({ label: "Second model server · local" });
+    await page.getByLabel("Model provider for this request").selectOption({ label: `${PROVIDER} · local` });
     await page.getByLabel("Model for this request").selectOption("fake-good");
     await page.getByLabel("Question").fill("Which repositories provide vector search?");
     await page.getByLabel("Question").press("Enter");
     const turn = page.getByTestId("ask-turn").last();
     await expect(turn.getByRole("button", { name: "Save report" })).toBeVisible({ timeout: 30_000 });
-    await expect(turn).toContainText("Second model server");
+    await expect(turn).toContainText(PROVIDER);
     const report = (await (await page.request.get("/api/reports?kind=ask&limit=1")).json())[0];
-    expect(report.provider_id).toBe("second-model-server");
+    expect(report.provider_id).toBe(PROVIDER_ID);
     // the global default is unchanged
     await expect(page.getByTestId("active-model")).toContainText("Fake LLM");
   });
@@ -83,7 +86,7 @@ test.describe("settings and model switching", () => {
     expect(askRequests, "no automatic retry or fallback").toBe(1);
 
     // an explicit click runs it again on the chosen provider
-    await panel.getByRole("button", { name: /Second model server/ }).click();
+    await panel.getByRole("button", { name: new RegExp(PROVIDER) }).click();
     await expect(page.getByTestId("ask-turn").last().getByRole("button", { name: "Save report" })).toBeVisible({ timeout: 30_000 });
     expect(askRequests).toBe(2);
   });

@@ -141,3 +141,12 @@ export function SharedLists({ comparison }: { comparison: Comparison }) {
     </div>
   );
 }
+
+/**
+ * A comparison report's markdown ends with a "## Comparison table" section. When the
+ * structured table is on screen, show only the narrative part.
+ */
+export function narrativeOnly(markdown: string): string {
+  const at = markdown.search(/(^|\n)#{1,3}\s+Comparison table\b/i);
+  return (at === -1 ? markdown : markdown.slice(0, at)).trim();
+}

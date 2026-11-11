@@ -1,0 +1,45 @@
+# Optional local infrastructure for StarIndex. Nothing here is required.
+#
+# StarIndex runs out of the box with an embedded Qdrant index (single process, no Docker).
+# Use this file when you want Qdrant as a server -- recommended once you deep-index many
+# repositories (hundreds of thousands of passages), because the server filters with payload
+# indexes and searches with HNSW instead of scanning in-process:
+#
+#     docker compose up -d qdrant
+#     scripts\start.ps1 -QdrantUrl http://127.0.0.1:6333
+#
+# After switching, run "Rebuild vector index" on the Sync page; vectors are re-created from the
+# embedding cache in the database without re-embedding anything.
+#
+# Requirements: Docker Desktop on Windows (WSL 2 backend). Both services bind to loopback only.
+# The ollama service is an alternative to installing Ollama for Windows natively; GPU passthrough
+# needs the NVIDIA Container Toolkit and the `deploy` block below.
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6333:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  qdrant-data:
+  ollama-data:

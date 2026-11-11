@@ -102,7 +102,7 @@ export function RepoPicker({
               <li key={repo.id} role="option" aria-selected={i === cursor}>
                 <button
                   type="button"
-                  onMouseEnter={() => setCursor(i)}
+                  onMouseMove={() => cursor !== i && setCursor(i)}
                   onClick={() => pick(repo)}
                   className={cn("flex w-full cursor-pointer items-center gap-2.5 px-3 py-1.5 text-left", i === cursor && "bg-line")}
                 >

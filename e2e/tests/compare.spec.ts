@@ -12,7 +12,7 @@ test.describe("compare", () => {
     const second = page.getByRole("combobox", { name: /Add another repository/ });
     await second.fill("duckdb");
     await page.getByRole("option", { name: /duckdb\/duckdb/ }).click();
-    await expect(page).toHaveURL(/ids=\d+,\d+/);
+    await expect(page).toHaveURL(/ids=\d+(,|%2C)\d+/);
 
     const table = page.getByTestId("compare-table");
     await expect(table).toBeVisible();
@@ -53,7 +53,14 @@ test.describe("compare", () => {
     await page.goto(`/compare?ids=${a},${b}`);
     await expect(page.getByTestId("compare-table")).toBeVisible();
     await page.getByRole("button", { name: "Generate narrative" }).click();
-    await expect(page.getByRole("button", { name: "Save report" })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole("region", { name: "AI narrative" }).getByRole("button", { name: /^Evidence E\d+$/ }).first()).toBeVisible();
+    const narrative = page.getByRole("region", { name: "AI narrative" });
+    // the narrative is stored as a saved comparison report as soon as it completes
+    await expect(narrative.getByRole("button", { name: "Saved", exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(narrative.getByRole("button", { name: /^Evidence E\d+$/ }).first()).toBeVisible();
+    // the structured table stays the single table on the page
+    await expect(narrative.getByRole("table")).toHaveCount(0);
+    await narrative.getByRole("link", { name: "Open report page" }).click();
+    await expect(page).toHaveURL(/\/reports\/\d+/);
+    await expect(page.getByTestId("compare-table")).toBeVisible();
   });
 });

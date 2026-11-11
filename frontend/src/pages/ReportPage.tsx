@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "@/api/client";
 import { ApiError, errorMessage } from "@/api/errors";
 import type { Comparison } from "@/api/types";
-import { CompareTable, SharedLists } from "@/components/ai/CompareTable";
+import { CompareTable, narrativeOnly, SharedLists } from "@/components/ai/CompareTable";
 import { UsageLine } from "@/components/ai/ModelControls";
 import { CitedAnswer, EvidenceAside, ReportActions, ResearchFacts, WarningsBlock } from "@/components/ai/ReportView";
 import { RepoTitle } from "@/components/repo/RepoBits";
@@ -59,8 +59,11 @@ export default function ReportPage() {
     );
   }
 
-  const comparison = report.kind === "compare" ? asComparison(report.data) : null;
+  const baseComparison = report.kind === "compare" ? asComparison(report.data) : null;
+  // A saved comparison keeps its evidence on the report, not inside data.comparison.
+  const comparison = baseComparison ? { ...baseComparison, evidence: baseComparison.evidence.length ? baseComparison.evidence : report.evidence } : null;
   const evidence = report.evidence.length ? report.evidence : (comparison?.evidence ?? []);
+  const answer = comparison ? narrativeOnly(report.answer_md) : report.answer_md;
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-4 pb-20 pt-5 md:px-8">
@@ -103,9 +106,9 @@ export default function ReportPage() {
               </div>
             </div>
           )}
-          {report.answer_md ? (
+          {answer ? (
             <div className="max-w-[900px]">
-              <CitedAnswer text={report.answer_md} evidence={evidence} />
+              <CitedAnswer text={answer} evidence={evidence} />
             </div>
           ) : !comparison && report.status === "running" ? (
             <p className="text-sm text-fg-3">This run is still in progress…</p>
@@ -134,7 +137,7 @@ export default function ReportPage() {
           steps={report.trace}
           showTrace={report.kind === "research" || report.trace.length > 0}
           repoNames={repoNames}
-          text={report.answer_md}
+          text={answer}
           className="xl:border-l xl:border-line xl:pl-6"
         />
       </div>

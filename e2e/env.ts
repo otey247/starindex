@@ -32,3 +32,5 @@ export const FRESH_URL = process.env.STARINDEX_E2E_FRESH_URL ?? `http://127.0.0.
 /** The scripted OpenAI-compatible model server that belongs to the MAIN instance. */
 export const LLM_URL = process.env.STARINDEX_E2E_LLM_URL ?? `http://127.0.0.1:${MAIN.llmPort}/v1`;
 export const GITHUB_TOKEN = "demo-token";
+/** Login of the account the fake GitHub serves stars for. */
+export const GITHUB_LOGIN = "octo";

@@ -74,7 +74,7 @@ def build(data_dir: Path, *, seed_db: str | None, models_dir: str | None, model:
         t0 = time.time()
         if seed_db and Path(seed_db).is_file():
             # Reuse vectors computed by another instance: the cache is keyed by content hash + model.
-            src = sqlite3.connect(f"file:{seed_db}?mode=ro", uri=True)
+            src = sqlite3.connect(Path(seed_db).resolve().as_uri() + "?mode=ro", uri=True)
             rows = src.execute("SELECT content_hash, model_key, dim, vector, created_at FROM embeddings").fetchall()
             src.close()
             with ctx.db.tx() as c:

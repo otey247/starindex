@@ -63,7 +63,7 @@ test.describe("research", () => {
     await expect(notes).toContainText(/not in your starred library|does not match any retrieved evidence/);
     await expect(page.getByTestId("unverified-mark").first()).toBeVisible();
     // the invented repository never becomes a link into the library
-    await expect(page.getByRole("link", { name: /evil\/backdoor/ })).toHaveCount(0);
+    await expect(page.locator('a[href^="/repo/"]').filter({ hasText: "evil" })).toHaveCount(0);
   });
 
   test("a running research can be stopped", async ({ page }) => {

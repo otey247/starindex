@@ -53,6 +53,9 @@ export async function noHorizontalOverflow(page: Page): Promise<void> {
  * a styled sibling), so interact through its label like a user would.
  */
 export async function tick(scope: Locator | Page, name: string | RegExp): Promise<void> {
-  const root = "locator" in scope ? scope : scope;
-  await root.locator("label").filter({ has: root.getByRole("checkbox", { name }) }).first().click();
+  const page = "page" in scope ? scope.page() : scope;
+  await scope.locator("label").filter({ has: page.getByRole("checkbox", { name }) }).first().click();
 }
+
+/** Unique per run, so the suite can also be pointed at an instance that already has data. */
+export const RUN = Date.now().toString(36);

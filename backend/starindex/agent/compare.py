@@ -80,16 +80,24 @@ def license_notes(repos: list[tuple[str, str | None]]) -> list[str]:
 def _features(ctx: AppContext, repo_id: int, evidence: EvidenceSet) -> tuple[str, list[str]]:
     """Feature bullets the project lists in its README (documented claims, not verified)."""
     rows = ctx.db.all(
-        "SELECT id, heading, content FROM chunks WHERE repo_id=? AND kind='readme' ORDER BY document_id, ordinal LIMIT 40", (repo_id,)
+        "SELECT id, content FROM chunks WHERE repo_id=? AND kind='readme' ORDER BY document_id, ordinal LIMIT 40", (repo_id,)
     )
     for r in rows:
-        last = r["heading"].split(" > ")[-1] if r["heading"] else ""
-        if _FEATURE_HEADING.search(last):
-            bullets = [m.group(1).strip() for line in r["content"].split("\n") if (m := _BULLET.match(line))]
-            if bullets:
-                ref = evidence.add_chunk(r["id"])
-                short = [re.sub(r"\s+", " ", re.sub(r"[*_`]", "", b))[:110] for b in bullets[:5]]
-                return "• " + "\n• ".join(short), [ref] if ref else []
+        bullets: list[str] = []
+        in_section = False
+        for line in r["content"].split("\n"):
+            heading = re.match(r"^#{1,6}\s+(.*)$", line)
+            if heading:
+                if in_section and bullets:
+                    break
+                in_section = bool(_FEATURE_HEADING.search(heading.group(1)))
+                continue
+            if in_section and (m := _BULLET.match(line)):
+                bullets.append(m.group(1).strip())
+        if bullets:
+            ref = evidence.add_chunk(r["id"])
+            short = [re.sub(r"\s+", " ", re.sub(r"[*_`]", "", b))[:110] for b in bullets[:5]]
+            return "• " + "\n• ".join(short), [ref] if ref else []
     return "—", []
 
 

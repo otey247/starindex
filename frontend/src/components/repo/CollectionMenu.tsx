@@ -3,7 +3,7 @@ import { FolderPlus, Plus } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { api } from "@/api/client";
 import { errorMessage } from "@/api/errors";
-import { invalidateRepoData, useCollections } from "@/api/queries";
+import { invalidateRepoData, keys, useCollections } from "@/api/queries";
 import { Button, Dialog, Field, Input, Menu, Textarea, type MenuItem } from "@/components/ui";
 import { toast } from "@/state/stores";
 
@@ -25,6 +25,7 @@ export function NewCollectionDialog({
     mutationFn: () => api.createCollection({ name: name.trim(), description: description.trim(), repo_ids: repoIds }),
     onSuccess: (c) => {
       invalidateRepoData(qc);
+      for (const id of repoIds) qc.invalidateQueries({ queryKey: keys.repo(id) });
       toast.success(`Created “${c.name}”${repoIds.length ? ` with ${repoIds.length} repositor${repoIds.length === 1 ? "y" : "ies"}` : ""}.`);
       setName("");
       setDescription("");

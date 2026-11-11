@@ -69,3 +69,12 @@ describe("reduceStream", () => {
     expect(s.reportId).toBe(4);
   });
 });
+
+describe("narrativeOnly", () => {
+  it("drops the appended markdown table of a comparison report", async () => {
+    const { narrativeOnly } = await import("./CompareTable");
+    expect(narrativeOnly("## Answer\n\nA beats B [E1].\n\n## Comparison table\n\n| | A | B |\n|---|---|---|")).toBe("## Answer\n\nA beats B [E1].");
+    expect(narrativeOnly("## Comparison table\n\n| | A |")).toBe("");
+    expect(narrativeOnly("Just prose.")).toBe("Just prose.");
+  });
+});

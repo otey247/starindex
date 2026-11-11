@@ -434,11 +434,19 @@ function ProviderRow({ provider }: { provider: ProviderInfo }) {
 // ------------------------------------------------------------------ routing
 
 function RoutePicker({ value, onChange, providers, allowDefault, label }: { value: Route | null; onChange: (next: Route | null) => void; providers: ProviderInfo[]; allowDefault?: boolean; label: string }) {
-  const providerId = value?.provider_id ?? "";
+  // Choosing a provider is a local step: nothing is saved until a model is chosen too.
+  const [pendingProvider, setPendingProvider] = useState<string | null>(null);
+  const providerId = pendingProvider ?? value?.provider_id ?? "";
+  const model = pendingProvider ? "" : (value?.model ?? "");
   const models = useQuery({ queryKey: ["provider-models", providerId], queryFn: () => api.providerModels(providerId), enabled: providerId !== "", staleTime: 60_000 });
   const chat = (models.data?.models ?? []).filter((m) => m.kind === "chat" || m.kind === "unknown");
-  const [draft, setDraft] = useState(value?.model ?? "");
-  useEffect(() => setDraft(value?.model ?? ""), [value?.model]);
+  const [draft, setDraft] = useState(model);
+  useEffect(() => setDraft(model), [model]);
+  useEffect(() => setPendingProvider(null), [value?.provider_id, value?.model]);
+  const commit = (next: string) => {
+    if (!next.trim()) return;
+    onChange({ provider_id: providerId, model: next.trim() });
+  };
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select
@@ -446,8 +454,13 @@ function RoutePicker({ value, onChange, providers, allowDefault, label }: { valu
         value={providerId}
         onChange={(e) => {
           const id = e.target.value;
-          if (!id) return onChange(null);
-          onChange({ provider_id: id, model: "" });
+          if (!id) {
+            setPendingProvider(null);
+            if (value) onChange(null);
+            return;
+          }
+          if (id !== value?.provider_id) setPendingProvider(id);
+          else setPendingProvider(null);
         }}
         className="w-[190px]"
       >
@@ -459,10 +472,14 @@ function RoutePicker({ value, onChange, providers, allowDefault, label }: { valu
           </option>
         ))}
       </Select>
-      {value &&
-        (chat.length > 0 ? (
-          <Select aria-label={`${label} model`} value={value.model} onChange={(e) => onChange({ provider_id: value.provider_id, model: e.target.value })} className="w-[230px]">
-            {!chat.some((m) => m.id === value.model) && <option value={value.model}>{value.model || "Choose a model…"}</option>}
+      {providerId &&
+        (models.isLoading ? (
+          <Select aria-label={`${label} model`} value="" disabled onChange={() => undefined} className="w-[230px]">
+            <option value="">Loading models…</option>
+          </Select>
+        ) : chat.length > 0 ? (
+          <Select aria-label={`${label} model`} value={model} onChange={(e) => commit(e.target.value)} className="w-[230px]">
+            {!chat.some((m) => m.id === model) && <option value={model}>{model || "Choose a model…"}</option>}
             {chat.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.display_name ?? m.id}
@@ -474,8 +491,9 @@ function RoutePicker({ value, onChange, providers, allowDefault, label }: { valu
             aria-label={`${label} model`}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            onBlur={() => draft !== value.model && onChange({ provider_id: value.provider_id, model: draft.trim() })}
-            placeholder={models.isLoading ? "Loading models…" : "model id"}
+            onBlur={() => draft !== model && commit(draft)}
+            onKeyDown={(e) => e.key === "Enter" && commit(draft)}
+            placeholder="model id"
             className="mono w-[230px] text-xs"
           />
         ))}

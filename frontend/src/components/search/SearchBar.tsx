@@ -283,7 +283,7 @@ export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function Se
             <li key={row.key} role="option" aria-selected={i === cursor}>
               <button
                 type="button"
-                onMouseEnter={() => setCursor(i)}
+                onMouseMove={() => cursor !== i && setCursor(i)}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={row.apply}
                 className={cn("flex w-full cursor-pointer items-center gap-3 px-4 py-1.5 text-left", i === cursor && "bg-line")}

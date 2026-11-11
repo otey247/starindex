@@ -206,7 +206,9 @@ def chunk_markdown(text: str) -> list[Chunk]:
             prev = merged[-1]
             same_family = piece.heading_path.startswith(prev.heading_path) or prev.heading_path.startswith(piece.heading_path)
             if prev.size < MIN_CHARS and prev.size + piece.size <= MAX_CHARS and (same_family or prev.size < 60):
-                merged[-1] = _Block(prev.heading_path or piece.heading_path, prev.start, piece.end, prev.lines + piece.lines)
+                # The merged chunk is labelled with the heading of its larger part.
+                label = prev.heading_path if prev.size >= piece.size and prev.heading_path else piece.heading_path
+                merged[-1] = _Block(label or prev.heading_path, prev.start, piece.end, prev.lines + piece.lines)
                 continue
         merged.append(piece)
 

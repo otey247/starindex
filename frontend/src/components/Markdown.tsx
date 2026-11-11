@@ -114,6 +114,9 @@ export const Markdown = memo(function Markdown({
           </a>
         );
       },
+      h1({ children: kids }) {
+        return <h2 data-md-level="1">{kids as ReactNode}</h2>;
+      },
       table({ children: kids }) {
         return <table>{kids as ReactNode}</table>;
       },

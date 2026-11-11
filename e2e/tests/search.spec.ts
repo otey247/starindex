@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { blur, rows, search, tick, watchForErrors } from "./helpers";
+import { blur, rows, RUN, search, tick, watchForErrors } from "./helpers";
 
 test.describe("search", () => {
   test("keyword search finds repositories and shows cited passages", async ({ page }) => {
@@ -90,14 +90,15 @@ test.describe("search", () => {
     await expect(page.getByTestId("result-summary")).toBeVisible();
     await page.getByRole("button", { name: "Save this search" }).click();
     const dialog = page.getByRole("dialog", { name: "Save this search" });
-    await dialog.getByLabel("Name").fill("Automation tools");
+    await dialog.getByLabel("Name").fill(`Automation tools ${RUN}`);
     await dialog.getByRole("button", { name: "Save search" }).click();
     await expect(page.getByText("Search saved.")).toBeVisible();
 
     await page.goto("/search");
-    await expect(page.getByRole("button", { name: /Automation tools/ })).toBeVisible();
+    const saved = page.getByRole("button", { name: new RegExp(`Automation tools ${RUN}`) });
+    await expect(saved).toBeVisible();
     await expect(page.getByRole("button", { name: /workflow automation/ }).first()).toBeVisible(); // recent
-    await page.getByRole("button", { name: /Automation tools/ }).click();
+    await saved.click();
     await expect(page).toHaveURL(/q=workflow\+automation/);
   });
 

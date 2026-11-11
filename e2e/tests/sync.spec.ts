@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { RUN } from "./helpers";
 
 test.describe("sync and library", () => {
   test("Sync shows connection, indexing progress, jobs and schedules", async ({ page }) => {
@@ -30,7 +31,7 @@ test.describe("sync and library", () => {
     await page.getByLabel("Quick filter").fill("airflow");
     await expect(page.locator("[data-result-row]")).toHaveCount(1);
     await page.getByLabel("Quick filter").fill("");
-    await page.getByRole("button", { name: /^Stars$/ }).click(); // column header sort
+    await page.getByRole("region", { name: "Repositories" }).getByRole("button", { name: "Stars", exact: true }).click(); // column header sort
     await expect(page).toHaveURL(/sort=stars/);
 
     // select two rows -> bulk bar -> compare
@@ -40,7 +41,7 @@ test.describe("sync and library", () => {
     const bar = page.getByRole("toolbar", { name: "Bulk actions" });
     await expect(bar).toContainText("2 selected");
     await bar.getByRole("button", { name: "Tag" }).click();
-    await page.getByRole("dialog").getByLabel("Tags").fill("e2e-bulk");
+    await page.getByRole("dialog").getByLabel("Tags").fill(`e2e-bulk-${RUN}`);
     await page.getByRole("dialog").getByRole("button", { name: "Add tags" }).click();
     await expect(page.getByText(/Tagged 2 repositories/)).toBeVisible();
     await bar.getByRole("button", { name: "Compare" }).click();

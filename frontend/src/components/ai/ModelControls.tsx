@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRight, Cloud, Cpu, ExternalLink, HardDrive, Settings2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { useModelOptions } from "@/api/queries";
@@ -103,6 +103,12 @@ export function ModelPicker({
   });
   const eff = effectiveRoute(data, value);
   const chatModels = (models.data?.models ?? []).filter((m) => m.kind === "chat" || m.kind === "unknown");
+
+  // A provider without a default model gets its first discovered chat model, so a request
+  // is never sent with an empty model id.
+  useEffect(() => {
+    if (value && !value.model && chatModels.length > 0) onChange({ provider_id: value.provider_id, model: chatModels[0]!.id });
+  }, [value, chatModels, onChange]);
 
   const pickProvider = (id: string) => {
     if (!id) return onChange(null);

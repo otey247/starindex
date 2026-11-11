@@ -13,6 +13,7 @@ test.describe("keyboard shortcuts", () => {
 
   test("Ctrl+K opens the command palette, which finds repositories; Esc closes it", async ({ page }) => {
     await page.goto("/sync");
+    await expect(page.getByRole("heading", { level: 1, name: "Sync" })).toBeVisible();
     await page.keyboard.press("Control+k");
     const palette = page.getByRole("dialog", { name: "Command palette" });
     await expect(palette).toBeVisible();

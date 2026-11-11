@@ -161,7 +161,10 @@ def index_repo(ctx: AppContext, repo_id: int, *, force: bool = False, job: JobHa
                     if len(fetched) % 200 == 0:
                         job.progress(len(fetched), len(to_fetch))
             finally:
-                archive.unlink(missing_ok=True)
+                try:
+                    archive.unlink(missing_ok=True)
+                except OSError:        # Windows keeps a file locked while a handle is open; cleanup retries later
+                    log.debug("could not remove %s yet", archive)
             if truncated:      # the tree listing was incomplete: classify what the archive actually held
                 known = {c.path for c in candidates}
                 for path, data in fetched.items():

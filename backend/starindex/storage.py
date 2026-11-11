@@ -53,23 +53,28 @@ def create_backup(ctx: AppContext) -> Path:
     """
     paths = ctx.config.paths
     paths.backups_dir.mkdir(parents=True, exist_ok=True)
-    name = f"{BACKUP_PREFIX}{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}.db"
-    target = paths.backups_dir / name
+    stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+    target = paths.backups_dir / f"{BACKUP_PREFIX}{stamp}.db"
+    n = 1
+    while target.exists():              # never overwrite an existing backup (two within one second)
+        n += 1
+        target = paths.backups_dir / f"{BACKUP_PREFIX}{stamp}-{n}.db"
     dest = sqlite3.connect(str(target))
     try:
         ctx.db.conn().backup(dest)
     finally:
         dest.close()
     keep = ctx.settings.storage.backup_keep
-    backups = sorted(paths.backups_dir.glob(f"{BACKUP_PREFIX}*.db"))
+    backups = sorted(paths.backups_dir.glob(f"{BACKUP_PREFIX}*.db"), key=lambda p: (p.stat().st_mtime, p.name))
     for old in backups[:-keep] if keep > 0 else []:
-        old.unlink(missing_ok=True)
+        if old != target:
+            old.unlink(missing_ok=True)
     return target
 
 
 def list_backups(ctx: AppContext) -> list[dict[str, Any]]:
     out = []
-    for p in sorted(ctx.config.paths.backups_dir.glob(f"{BACKUP_PREFIX}*.db"), reverse=True):
+    for p in sorted(ctx.config.paths.backups_dir.glob(f"{BACKUP_PREFIX}*.db"), key=lambda p: (p.stat().st_mtime, p.name), reverse=True):
         st = p.stat()
         out.append({
             "name": p.name,
@@ -87,7 +92,7 @@ def restore_backup(ctx: AppContext, name: str) -> None:
     source_path = ctx.config.paths.backups_dir / name
     if not source_path.is_file():
         raise FileNotFoundError(name)
-    src = sqlite3.connect(f"file:{source_path}?mode=ro", uri=True)
+    src = sqlite3.connect(source_path.resolve().as_uri() + "?mode=ro", uri=True)      # as_uri() is correct on Windows too
     try:
         if not src.execute("SELECT 1 FROM sqlite_master WHERE name='schema_migrations'").fetchone():
             raise ValueError("That file is not a StarIndex backup.")

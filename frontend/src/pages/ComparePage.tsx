@@ -5,7 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "@/api/client";
 import { errorMessage } from "@/api/errors";
 import type { RouteOverride } from "@/api/types";
-import { CompareTable, SharedLists } from "@/components/ai/CompareTable";
+import { CompareTable, narrativeOnly, SharedLists } from "@/components/ai/CompareTable";
 import { ModelPicker, ProviderErrorPanel, UsageLine, useCloudGate } from "@/components/ai/ModelControls";
 import { CitedAnswer, ReportActions } from "@/components/ai/ReportView";
 import { useAiStream } from "@/components/ai/useAiStream";
@@ -182,7 +182,7 @@ export default function ComparePage() {
             )}
             {s.text && (
               <div className="mt-5">
-                <CitedAnswer text={s.text} evidence={evidence} streaming={running} />
+                <CitedAnswer text={narrativeOnly(s.text)} evidence={evidence} streaming={running} />
               </div>
             )}
             {s.phase === "error" && s.error && (

@@ -47,6 +47,7 @@ W_LEX_REPO, W_LEX_CHUNK, W_SEM_REPO, W_SEM_CHUNK = 1.0, 0.5, 1.0, 0.7
 # language, README opening); "best_chunk" (the top matching passage) measured worse.
 RERANK_WEIGHT, RERANK_FUSED_WEIGHT, RERANK_K = 1.0, 1.0, 20
 RERANK_PASSAGE = "intro"           # intro | best_chunk
+FORK_PRIOR = 0.9
 EXPANSIONS = {
     "k8s": "kubernetes", "llm": "language model", "llms": "language models", "rag": "retrieval augmented generation",
     "mcp": "model context protocol", "tts": "text to speech", "stt": "speech to text", "asr": "speech recognition",
@@ -212,7 +213,7 @@ class SearchService:
         total = len(cands)
         if mode == "keyword":
             total = max(total, lexical.count_repos(self.db, q, cf))
-        ordered = sorted(cands.values(), key=lambda c: c.fused, reverse=True)
+        ordered = sorted(cands.values(), key=lambda c: (-c.fused, c.repo_id))
 
         reranked = False
         use_rerank = settings.rerank.enabled if req.rerank is None else req.rerank
@@ -352,7 +353,9 @@ class SearchService:
         meta: dict[int, Any] = {}
         for start in range(0, len(ids), 500):
             part = ids[start : start + 500]
-            for r in self.db.all(f"SELECT id, stars, pushed_at, is_archived FROM repos WHERE id IN ({placeholders(len(part))})", part):
+            for r in self.db.all(
+                f"SELECT id, stars, pushed_at, is_archived, is_fork FROM repos WHERE id IN ({placeholders(len(part))})", part
+            ):
                 meta[r["id"]] = r
         fresh = {"active": 1.0, "maintained": 0.7, "slowing": 0.35, "stale": 0.1, "archived": 0.0, "unknown": 0.3}
         top = max(c.fused for c in cands) or 1.0
@@ -361,13 +364,15 @@ class SearchService:
             pop = min(1.0, math.log10((r["stars"] if r else 0) + 1) / 5.0)
             fr = fresh[maintenance_status(r["pushed_at"], bool(r["is_archived"]))] if r else 0.3
             c.prior = 1.0 + settings.search.popularity_boost * pop + settings.search.freshness_boost * fr
+            if r and r["is_fork"]:
+                c.prior *= FORK_PRIOR          # a fork should not outrank its near-identical upstream
             c.score = c.fused * c.prior
             if c.name_match:
                 c.score += top * 2      # exact-name hits lead, ordered among themselves by their own score
 
     def _sort(self, cands: list[Candidate], sort: str) -> list[Candidate]:
         if sort == "relevance":
-            return sorted(cands, key=lambda c: c.score, reverse=True)
+            return sorted(cands, key=lambda c: (-c.score, c.repo_id))      # deterministic order for equal scores
         col = {"stars": "stars", "pushed_at": "pushed_at", "starred_at": "starred_at", "name": "lower(full_name)"}[sort]
         ids = [c.repo_id for c in cands]
         by_id = {c.repo_id: c for c in cands}

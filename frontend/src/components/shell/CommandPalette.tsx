@@ -23,8 +23,14 @@ interface Command {
   run: () => void;
 }
 
+/** Mounted only while open, so every opening starts with an empty query and a focused input. */
 export function CommandPalette() {
   const open = useUi((s) => s.paletteOpen);
+  return open ? <PaletteDialog /> : null;
+}
+
+function PaletteDialog() {
+  const open = true;
   const setOpen = useUi((s) => s.setPalette);
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -48,14 +54,6 @@ export function CommandPalette() {
     },
     onError: (err) => toast.error(errorMessage(err)),
   });
-
-  useEffect(() => {
-    if (open) {
-      setQ("");
-      setCursor(0);
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
-  }, [open]);
 
   const commands = useMemo<Command[]>(() => {
     const go = (to: string) => () => navigate(to);
@@ -101,8 +99,6 @@ export function CommandPalette() {
     listRef.current?.querySelector<HTMLElement>(`[data-index="${cursor}"]`)?.scrollIntoView({ block: "nearest" });
   }, [cursor]);
 
-  if (!open) return null;
-
   const run = (cmd: Command | undefined) => {
     if (!cmd) return;
     setOpen(false);
@@ -118,6 +114,7 @@ export function CommandPalette() {
           <SearchIcon className="size-4 shrink-0 text-fg-3" aria-hidden />
           <input
             ref={inputRef}
+            autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search repositories, ask a question, or run a command"
