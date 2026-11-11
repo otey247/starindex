@@ -1,0 +1,7716 @@
+{
+  "components": {
+    "schemas": {
+      "AnnotationPatch": {
+        "properties": {
+          "favorite": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Favorite"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Note"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "maximum": 3,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Priority"
+          }
+        },
+        "title": "AnnotationPatch",
+        "type": "object"
+      },
+      "AppSettings": {
+        "properties": {
+          "embedding": {
+            "$ref": "#/components/schemas/EmbeddingSettings"
+          },
+          "github": {
+            "$ref": "#/components/schemas/GitHubSettings"
+          },
+          "indexing": {
+            "$ref": "#/components/schemas/IndexingSettings"
+          },
+          "onboarding_completed": {
+            "default": false,
+            "title": "Onboarding Completed",
+            "type": "boolean"
+          },
+          "pricing": {
+            "items": {
+              "$ref": "#/components/schemas/ModelPrice"
+            },
+            "title": "Pricing",
+            "type": "array"
+          },
+          "privacy": {
+            "$ref": "#/components/schemas/PrivacySettings"
+          },
+          "rerank": {
+            "$ref": "#/components/schemas/RerankSettings"
+          },
+          "research": {
+            "$ref": "#/components/schemas/ResearchLimits"
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RoutingSettings"
+          },
+          "search": {
+            "$ref": "#/components/schemas/SearchSettings"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageSettings"
+          },
+          "sync": {
+            "$ref": "#/components/schemas/SyncSettings"
+          }
+        },
+        "title": "AppSettings",
+        "type": "object"
+      },
+      "AskRequest": {
+        "properties": {
+          "confirm_cloud": {
+            "default": false,
+            "title": "Confirm Cloud",
+            "type": "boolean"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepoFilters"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "history": {
+            "default": [],
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "question": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RouteOverride"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AskRequest",
+        "type": "object"
+      },
+      "BackupInfo": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "created_at",
+          "size_bytes",
+          "path"
+        ],
+        "title": "BackupInfo",
+        "type": "object"
+      },
+      "BatchIndexRequest": {
+        "properties": {
+          "category_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Category Slug"
+          },
+          "collection_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Collection Id"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepoFilters"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "force": {
+            "default": false,
+            "title": "Force",
+            "type": "boolean"
+          },
+          "level": {
+            "enum": [
+              "metadata",
+              "docs",
+              "deep"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "level"
+        ],
+        "title": "BatchIndexRequest",
+        "type": "object"
+      },
+      "BatchIndexResponse": {
+        "properties": {
+          "job_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Job Ids",
+            "type": "array"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "queued",
+          "skipped"
+        ],
+        "title": "BatchIndexResponse",
+        "type": "object"
+      },
+      "CategoriesUpdate": {
+        "properties": {
+          "category_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Category Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "category_ids"
+        ],
+        "title": "CategoriesUpdate",
+        "type": "object"
+      },
+      "Category": {
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_builtin": {
+            "default": false,
+            "title": "Is Builtin",
+            "type": "boolean"
+          },
+          "keywords": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "repo_count": {
+            "default": 0,
+            "title": "Repo Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
+        "title": "Category",
+        "type": "object"
+      },
+      "CategoryCreate": {
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "keywords": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CategoryCreate",
+        "type": "object"
+      },
+      "CategoryPatch": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "keywords": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Keywords"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          }
+        },
+        "title": "CategoryPatch",
+        "type": "object"
+      },
+      "CategoryRef": {
+        "properties": {
+          "confidence": {
+            "default": 1.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "source": {
+            "default": "rule",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
+        "title": "CategoryRef",
+        "type": "object"
+      },
+      "ChatGPTAccount": {
+        "properties": {
+          "client_id_suffix": {
+            "title": "Client Id Suffix",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Email"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expires At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Error"
+          },
+          "plan_usage_enabled": {
+            "title": "Plan Usage Enabled",
+            "type": "boolean"
+          },
+          "saved_at": {
+            "title": "Saved At",
+            "type": "string"
+          },
+          "scopes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          },
+          "signed_in": {
+            "title": "Signed In",
+            "type": "boolean"
+          },
+          "welcome_pending": {
+            "default": false,
+            "title": "Welcome Pending",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "client_id_suffix",
+          "plan_usage_enabled",
+          "is_active",
+          "signed_in",
+          "saved_at"
+        ],
+        "title": "ChatGPTAccount",
+        "type": "object"
+      },
+      "ChatGPTLoginAttempt": {
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Account Id"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "auth_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Auth Url"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "plan_usage_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Plan Usage Enabled"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "completed",
+              "denied",
+              "failed",
+              "expired"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "status"
+        ],
+        "title": "ChatGPTLoginAttempt",
+        "type": "object"
+      },
+      "ChatGPTLoginStart": {
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Account Id"
+          },
+          "enable_plan_usage": {
+            "default": false,
+            "title": "Enable Plan Usage",
+            "type": "boolean"
+          }
+        },
+        "title": "ChatGPTLoginStart",
+        "type": "object"
+      },
+      "ChatGPTStatus": {
+        "properties": {
+          "accounts": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ChatGPTAccount"
+            },
+            "title": "Accounts",
+            "type": "array"
+          },
+          "active_account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Active Account Id"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "blocked_by_privacy": {
+            "default": false,
+            "title": "Blocked By Privacy",
+            "type": "boolean"
+          },
+          "host_id_set": {
+            "title": "Host Id Set",
+            "type": "boolean"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
+            "type": "string"
+          },
+          "usage_url": {
+            "default": "https://chatgpt.com/settings/usage",
+            "title": "Usage Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "host_id_set"
+        ],
+        "title": "ChatGPTStatus",
+        "type": "object"
+      },
+      "ChatMessage": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ChatMessage",
+        "type": "object"
+      },
+      "ChunkSpan": {
+        "properties": {
+          "chunk_id": {
+            "title": "Chunk Id",
+            "type": "integer"
+          },
+          "end_line": {
+            "title": "End Line",
+            "type": "integer"
+          },
+          "heading": {
+            "default": "",
+            "title": "Heading",
+            "type": "string"
+          },
+          "start_line": {
+            "title": "Start Line",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "start_line",
+          "end_line"
+        ],
+        "title": "ChunkSpan",
+        "type": "object"
+      },
+      "Collection": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "smart"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "preview": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Preview",
+            "type": "array"
+          },
+          "repo_count": {
+            "default": 0,
+            "title": "Repo Count",
+            "type": "integer"
+          },
+          "report_count": {
+            "default": 0,
+            "title": "Report Count",
+            "type": "integer"
+          },
+          "smart_query": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Collection",
+        "type": "object"
+      },
+      "CollectionCreate": {
+        "properties": {
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "kind": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "smart"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "smart_query": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CollectionCreate",
+        "type": "object"
+      },
+      "CollectionDetail": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "smart"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "preview": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Preview",
+            "type": "array"
+          },
+          "repo_count": {
+            "default": 0,
+            "title": "Repo Count",
+            "type": "integer"
+          },
+          "report_count": {
+            "default": 0,
+            "title": "Report Count",
+            "type": "integer"
+          },
+          "reports": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ReportSummary"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "repos": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Repos",
+            "type": "array"
+          },
+          "smart_query": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CollectionDetail",
+        "type": "object"
+      },
+      "CollectionPatch": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "smart_query": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "title": "CollectionPatch",
+        "type": "object"
+      },
+      "CollectionRef": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CollectionRef",
+        "type": "object"
+      },
+      "CompareNarrativeRequest": {
+        "properties": {
+          "confirm_cloud": {
+            "default": false,
+            "title": "Confirm Cloud",
+            "type": "boolean"
+          },
+          "focus": {
+            "default": "",
+            "title": "Focus",
+            "type": "string"
+          },
+          "repo_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 6,
+            "minItems": 2,
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RouteOverride"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "repo_ids"
+        ],
+        "title": "CompareNarrativeRequest",
+        "type": "object"
+      },
+      "CompareRequest": {
+        "properties": {
+          "repo_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 6,
+            "minItems": 2,
+            "title": "Repo Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "repo_ids"
+        ],
+        "title": "CompareRequest",
+        "type": "object"
+      },
+      "CompareRow": {
+        "properties": {
+          "evidence_class": {
+            "default": "observed",
+            "enum": [
+              "observed",
+              "documented",
+              "inferred",
+              "unverified"
+            ],
+            "title": "Evidence Class",
+            "type": "string"
+          },
+          "evidence_refs": {
+            "default": [],
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "group": {
+            "enum": [
+              "identity",
+              "capabilities",
+              "architecture",
+              "maturity",
+              "dependencies",
+              "licensing"
+            ],
+            "title": "Group",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "group",
+          "values"
+        ],
+        "title": "CompareRow",
+        "type": "object"
+      },
+      "Comparison": {
+        "properties": {
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "license_notes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "License Notes",
+            "type": "array"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Report Id"
+          },
+          "repos": {
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Repos",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/CompareRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "shared_dependencies": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SharedItem"
+            },
+            "title": "Shared Dependencies",
+            "type": "array"
+          },
+          "shared_topics": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SharedItem"
+            },
+            "title": "Shared Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "repos",
+          "rows"
+        ],
+        "title": "Comparison",
+        "type": "object"
+      },
+      "Counts": {
+        "properties": {
+          "chunks": {
+            "default": 0,
+            "title": "Chunks",
+            "type": "integer"
+          },
+          "chunks_embedded": {
+            "default": 0,
+            "title": "Chunks Embedded",
+            "type": "integer"
+          },
+          "collections": {
+            "default": 0,
+            "title": "Collections",
+            "type": "integer"
+          },
+          "documents": {
+            "default": 0,
+            "title": "Documents",
+            "type": "integer"
+          },
+          "reports": {
+            "default": 0,
+            "title": "Reports",
+            "type": "integer"
+          },
+          "repos": {
+            "default": 0,
+            "title": "Repos",
+            "type": "integer"
+          },
+          "starred": {
+            "default": 0,
+            "title": "Starred",
+            "type": "integer"
+          },
+          "unstarred": {
+            "default": 0,
+            "title": "Unstarred",
+            "type": "integer"
+          }
+        },
+        "title": "Counts",
+        "type": "object"
+      },
+      "Dependency": {
+        "properties": {
+          "ecosystem": {
+            "title": "Ecosystem",
+            "type": "string"
+          },
+          "manifest_path": {
+            "title": "Manifest Path",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "scope": {
+            "default": "runtime",
+            "title": "Scope",
+            "type": "string"
+          },
+          "shared_with": {
+            "default": 0,
+            "title": "Shared With",
+            "type": "integer"
+          },
+          "version_spec": {
+            "default": "",
+            "title": "Version Spec",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ecosystem",
+          "name",
+          "manifest_path"
+        ],
+        "title": "Dependency",
+        "type": "object"
+      },
+      "DiagnosticCheck": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "hint": {
+            "default": "",
+            "title": "Hint",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "warn",
+              "fail",
+              "info"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "detail"
+        ],
+        "title": "DiagnosticCheck",
+        "type": "object"
+      },
+      "Diagnostics": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosticCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "checks",
+          "generated_at"
+        ],
+        "title": "Diagnostics",
+        "type": "object"
+      },
+      "DocumentContent": {
+        "properties": {
+          "chunk_count": {
+            "default": 0,
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "chunks": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ChunkSpan"
+            },
+            "title": "Chunks",
+            "type": "array"
+          },
+          "commit_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Commit Sha"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "html_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Html Url"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "indexed_at": {
+            "title": "Indexed At",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Language"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "size_bytes": {
+            "default": 0,
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "kind",
+          "level",
+          "indexed_at",
+          "content"
+        ],
+        "title": "DocumentContent",
+        "type": "object"
+      },
+      "DocumentInfo": {
+        "properties": {
+          "chunk_count": {
+            "default": 0,
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "commit_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Commit Sha"
+          },
+          "html_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Html Url"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "indexed_at": {
+            "title": "Indexed At",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Language"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "size_bytes": {
+            "default": 0,
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "kind",
+          "level",
+          "indexed_at"
+        ],
+        "title": "DocumentInfo",
+        "type": "object"
+      },
+      "DuplicateGroup": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "fork",
+              "same_name",
+              "near_duplicate"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "repos": {
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Repos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "reason",
+          "detail",
+          "repos"
+        ],
+        "title": "DuplicateGroup",
+        "type": "object"
+      },
+      "EmbeddingSettings": {
+        "properties": {
+          "backend": {
+            "default": "fastembed",
+            "enum": [
+              "fastembed",
+              "ollama",
+              "openai_compat",
+              "sentence_transformers",
+              "none"
+            ],
+            "title": "Backend",
+            "type": "string"
+          },
+          "device": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "cpu",
+              "cuda"
+            ],
+            "title": "Device",
+            "type": "string"
+          },
+          "document_prefix": {
+            "default": "",
+            "title": "Document Prefix",
+            "type": "string"
+          },
+          "model": {
+            "default": "BAAI/bge-small-en-v1.5",
+            "title": "Model",
+            "type": "string"
+          },
+          "provider_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Id"
+          },
+          "query_prefix": {
+            "default": "",
+            "title": "Query Prefix",
+            "type": "string"
+          }
+        },
+        "title": "EmbeddingSettings",
+        "type": "object"
+      },
+      "EmbeddingStatus": {
+        "properties": {
+          "backend": {
+            "title": "Backend",
+            "type": "string"
+          },
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "dim": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dim"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "model_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Key"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "backend",
+          "model",
+          "ready"
+        ],
+        "title": "EmbeddingStatus",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "description": "Body of every non-2xx response: ``{\"error\": {...}}``.",
+        "properties": {
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "Evidence": {
+        "description": "One citable piece of indexed material. ``ref`` is what answers cite, e.g. [E3].",
+        "properties": {
+          "chunk_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Chunk Id"
+          },
+          "commit_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Commit Sha"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Document Id"
+          },
+          "end_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "End Line"
+          },
+          "evidence_class": {
+            "enum": [
+              "observed",
+              "documented",
+              "inferred",
+              "unverified"
+            ],
+            "title": "Evidence Class",
+            "type": "string"
+          },
+          "html_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Html Url"
+          },
+          "indexed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed At"
+          },
+          "injection_flag": {
+            "default": false,
+            "title": "Injection Flag",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "metadata",
+              "readme",
+              "doc",
+              "manifest",
+              "config",
+              "api",
+              "example",
+              "code",
+              "dependency",
+              "activity"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Path"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "repo_full_name": {
+            "title": "Repo Full Name",
+            "type": "string"
+          },
+          "repo_id": {
+            "title": "Repo Id",
+            "type": "integer"
+          },
+          "start_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Start Line"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "evidence_class",
+          "kind",
+          "repo_id",
+          "repo_full_name",
+          "title",
+          "text"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "EvidenceDetail": {
+        "description": "Evidence plus surrounding lines for the citation viewer.",
+        "properties": {
+          "chunk_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Chunk Id"
+          },
+          "commit_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Commit Sha"
+          },
+          "context_after": {
+            "default": "",
+            "title": "Context After",
+            "type": "string"
+          },
+          "context_before": {
+            "default": "",
+            "title": "Context Before",
+            "type": "string"
+          },
+          "context_start_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Context Start Line"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Document Id"
+          },
+          "end_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "End Line"
+          },
+          "evidence_class": {
+            "enum": [
+              "observed",
+              "documented",
+              "inferred",
+              "unverified"
+            ],
+            "title": "Evidence Class",
+            "type": "string"
+          },
+          "html_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Html Url"
+          },
+          "indexed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed At"
+          },
+          "injection_flag": {
+            "default": false,
+            "title": "Injection Flag",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "metadata",
+              "readme",
+              "doc",
+              "manifest",
+              "config",
+              "api",
+              "example",
+              "code",
+              "dependency",
+              "activity"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Path"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "repo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepoSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "repo_full_name": {
+            "title": "Repo Full Name",
+            "type": "string"
+          },
+          "repo_id": {
+            "title": "Repo Id",
+            "type": "integer"
+          },
+          "start_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Start Line"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "evidence_class",
+          "kind",
+          "repo_id",
+          "repo_full_name",
+          "title",
+          "text"
+        ],
+        "title": "EvidenceDetail",
+        "type": "object"
+      },
+      "FacetValue": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Label"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "count"
+        ],
+        "title": "FacetValue",
+        "type": "object"
+      },
+      "Facets": {
+        "properties": {
+          "categories": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "collections": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Collections",
+            "type": "array"
+          },
+          "index_status": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Index Status",
+            "type": "array"
+          },
+          "indexed_level": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Indexed Level",
+            "type": "array"
+          },
+          "languages": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Languages",
+            "type": "array"
+          },
+          "licenses": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Licenses",
+            "type": "array"
+          },
+          "maintenance": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Maintenance",
+            "type": "array"
+          },
+          "owners": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Owners",
+            "type": "array"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topics": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "title": "Facets",
+        "type": "object"
+      },
+      "GenerationRequest": {
+        "description": "Provider-neutral request. Adapters drop fields their API does not accept.",
+        "properties": {
+          "json_schema": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Json Schema"
+          },
+          "json_schema_name": {
+            "default": "result",
+            "title": "Json Schema Name",
+            "type": "string"
+          },
+          "max_output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 2048,
+            "title": "Max Output Tokens"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "system": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "System"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 0.2,
+            "title": "Temperature"
+          },
+          "timeout_s": {
+            "default": 180.0,
+            "title": "Timeout S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "model",
+          "messages"
+        ],
+        "title": "GenerationRequest",
+        "type": "object"
+      },
+      "GenerationResult": {
+        "properties": {
+          "finish_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Finish Reason"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Usage"
+          }
+        },
+        "required": [
+          "text",
+          "model"
+        ],
+        "title": "GenerationResult",
+        "type": "object"
+      },
+      "GitHubAuthStatus": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "gh_cli_authenticated": {
+            "default": false,
+            "title": "Gh Cli Authenticated",
+            "type": "boolean"
+          },
+          "gh_cli_available": {
+            "default": false,
+            "title": "Gh Cli Available",
+            "type": "boolean"
+          },
+          "login": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Login"
+          },
+          "method": {
+            "enum": [
+              "gh_cli",
+              "token",
+              "public",
+              "none"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "ok": {
+            "default": false,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "rate_limit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RateLimitInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "scopes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          },
+          "token_stored": {
+            "default": false,
+            "title": "Token Stored",
+            "type": "boolean"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Username"
+          }
+        },
+        "required": [
+          "method",
+          "configured"
+        ],
+        "title": "GitHubAuthStatus",
+        "type": "object"
+      },
+      "GitHubAuthUpdate": {
+        "properties": {
+          "method": {
+            "enum": [
+              "gh_cli",
+              "token",
+              "public",
+              "none"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Token"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Username"
+          }
+        },
+        "required": [
+          "method"
+        ],
+        "title": "GitHubAuthUpdate",
+        "type": "object"
+      },
+      "GitHubSettings": {
+        "properties": {
+          "auth_method": {
+            "default": "none",
+            "enum": [
+              "gh_cli",
+              "token",
+              "public",
+              "none"
+            ],
+            "title": "Auth Method",
+            "type": "string"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Username"
+          }
+        },
+        "title": "GitHubSettings",
+        "type": "object"
+      },
+      "GpuInfo": {
+        "properties": {
+          "driver": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Driver"
+          },
+          "memory_free_mb": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory Free Mb"
+          },
+          "memory_total_mb": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory Total Mb"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "GpuInfo",
+        "type": "object"
+      },
+      "HardwareInfo": {
+        "properties": {
+          "cpu_count": {
+            "title": "Cpu Count",
+            "type": "integer"
+          },
+          "cuda_available": {
+            "default": false,
+            "title": "Cuda Available",
+            "type": "boolean"
+          },
+          "gpus": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/GpuInfo"
+            },
+            "title": "Gpus",
+            "type": "array"
+          },
+          "memory_total_mb": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory Total Mb"
+          },
+          "onnx_providers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Onnx Providers",
+            "type": "array"
+          },
+          "os": {
+            "title": "Os",
+            "type": "string"
+          },
+          "recommendations": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Recommendations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "os",
+          "cpu_count"
+        ],
+        "title": "HardwareInfo",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "properties": {
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error Kind"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Latency Ms"
+          },
+          "model_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Count"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "IndexProgress": {
+        "properties": {
+          "by_level": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "By Level",
+            "type": "object"
+          },
+          "chunks": {
+            "default": 0,
+            "title": "Chunks",
+            "type": "integer"
+          },
+          "chunks_embedded": {
+            "default": 0,
+            "title": "Chunks Embedded",
+            "type": "integer"
+          },
+          "documents": {
+            "default": 0,
+            "title": "Documents",
+            "type": "integer"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "indexed": {
+            "title": "Indexed",
+            "type": "integer"
+          },
+          "indexing": {
+            "title": "Indexing",
+            "type": "integer"
+          },
+          "pending": {
+            "title": "Pending",
+            "type": "integer"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          },
+          "repos_embedded": {
+            "default": 0,
+            "title": "Repos Embedded",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "indexed",
+          "pending",
+          "queued",
+          "indexing",
+          "failed",
+          "skipped"
+        ],
+        "title": "IndexProgress",
+        "type": "object"
+      },
+      "IndexRequest": {
+        "properties": {
+          "force": {
+            "default": false,
+            "title": "Force",
+            "type": "boolean"
+          },
+          "level": {
+            "default": "docs",
+            "enum": [
+              "metadata",
+              "docs",
+              "deep"
+            ],
+            "title": "Level",
+            "type": "string"
+          }
+        },
+        "title": "IndexRequest",
+        "type": "object"
+      },
+      "IndexingSettings": {
+        "properties": {
+          "auto_index_new": {
+            "default": true,
+            "title": "Auto Index New",
+            "type": "boolean"
+          },
+          "code_extensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Code Extensions",
+            "type": "array"
+          },
+          "default_level": {
+            "default": "docs",
+            "enum": [
+              "metadata",
+              "docs",
+              "deep"
+            ],
+            "title": "Default Level",
+            "type": "string"
+          },
+          "embed_batch_size": {
+            "default": 32,
+            "maximum": 512,
+            "minimum": 1,
+            "title": "Embed Batch Size",
+            "type": "integer"
+          },
+          "exclude_dirs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclude Dirs",
+            "type": "array"
+          },
+          "exclude_globs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclude Globs",
+            "type": "array"
+          },
+          "fetch_concurrency": {
+            "default": 4,
+            "maximum": 16,
+            "minimum": 1,
+            "title": "Fetch Concurrency",
+            "type": "integer"
+          },
+          "max_deep_files": {
+            "default": 1500,
+            "maximum": 50000,
+            "minimum": 10,
+            "title": "Max Deep Files",
+            "type": "integer"
+          },
+          "max_doc_chars": {
+            "default": 200000,
+            "maximum": 5000000,
+            "minimum": 5000,
+            "title": "Max Doc Chars",
+            "type": "integer"
+          },
+          "max_docs_files": {
+            "default": 40,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Max Docs Files",
+            "type": "integer"
+          },
+          "max_file_bytes": {
+            "default": 400000,
+            "maximum": 20000000,
+            "minimum": 1000,
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "max_repo_size_mb_for_deep": {
+            "default": 2000,
+            "maximum": 100000,
+            "minimum": 1,
+            "title": "Max Repo Size Mb For Deep",
+            "type": "integer"
+          },
+          "max_tarball_mb": {
+            "default": 150,
+            "maximum": 5000,
+            "minimum": 1,
+            "title": "Max Tarball Mb",
+            "type": "integer"
+          },
+          "worker_concurrency": {
+            "default": 3,
+            "maximum": 16,
+            "minimum": 1,
+            "title": "Worker Concurrency",
+            "type": "integer"
+          }
+        },
+        "title": "IndexingSettings",
+        "type": "object"
+      },
+      "Job": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "max_attempts": {
+            "title": "Max Attempts",
+            "type": "integer"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Payload",
+            "type": "object"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "progress_current": {
+            "default": 0,
+            "title": "Progress Current",
+            "type": "integer"
+          },
+          "progress_message": {
+            "default": "",
+            "title": "Progress Message",
+            "type": "string"
+          },
+          "progress_total": {
+            "default": 0,
+            "title": "Progress Total",
+            "type": "integer"
+          },
+          "repo_full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Repo Full Name"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Result"
+          },
+          "run_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Run After"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "priority",
+          "attempts",
+          "max_attempts",
+          "created_at"
+        ],
+        "title": "Job",
+        "type": "object"
+      },
+      "JobEnqueue": {
+        "properties": {
+          "payload": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Payload",
+            "type": "object"
+          },
+          "type": {
+            "enum": [
+              "sync_full",
+              "sync_incremental",
+              "embed_pending",
+              "classify_repos",
+              "rebuild_search_index",
+              "rebuild_vector_index",
+              "cleanup",
+              "backup",
+              "refresh_metadata"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "JobEnqueue",
+        "type": "object"
+      },
+      "JobPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "JobPage",
+        "type": "object"
+      },
+      "LibraryOverview": {
+        "properties": {
+          "category_counts": {
+            "items": {
+              "$ref": "#/components/schemas/FacetValue"
+            },
+            "title": "Category Counts",
+            "type": "array"
+          },
+          "favorites": {
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Favorites",
+            "type": "array"
+          },
+          "needs_attention": {
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Needs Attention",
+            "type": "array"
+          },
+          "recently_rediscovered": {
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Recently Rediscovered",
+            "type": "array"
+          },
+          "recently_starred": {
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Recently Starred",
+            "type": "array"
+          },
+          "total_starred": {
+            "title": "Total Starred",
+            "type": "integer"
+          },
+          "total_unstarred_retained": {
+            "title": "Total Unstarred Retained",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_starred",
+          "total_unstarred_retained",
+          "recently_starred",
+          "recently_rediscovered",
+          "favorites",
+          "needs_attention",
+          "category_counts"
+        ],
+        "title": "LibraryOverview",
+        "type": "object"
+      },
+      "LlmStatus": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "is_cloud": {
+            "default": false,
+            "title": "Is Cloud",
+            "type": "boolean"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "provider_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Id"
+          },
+          "provider_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Kind"
+          },
+          "provider_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Name"
+          }
+        },
+        "required": [
+          "configured"
+        ],
+        "title": "LlmStatus",
+        "type": "object"
+      },
+      "Match": {
+        "description": "A passage that explains why a repository (or document) matched.",
+        "properties": {
+          "chunk_id": {
+            "title": "Chunk Id",
+            "type": "integer"
+          },
+          "commit_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Commit Sha"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "integer"
+          },
+          "end_line": {
+            "title": "End Line",
+            "type": "integer"
+          },
+          "heading": {
+            "default": "",
+            "title": "Heading",
+            "type": "string"
+          },
+          "html_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Html Url"
+          },
+          "indexed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed At"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "repo_id": {
+            "title": "Repo Id",
+            "type": "integer"
+          },
+          "score": {
+            "default": 0.0,
+            "title": "Score",
+            "type": "number"
+          },
+          "snippet": {
+            "title": "Snippet",
+            "type": "string"
+          },
+          "source": {
+            "default": "lexical",
+            "enum": [
+              "lexical",
+              "semantic",
+              "both"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "start_line": {
+            "title": "Start Line",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "document_id",
+          "repo_id",
+          "path",
+          "kind",
+          "start_line",
+          "end_line",
+          "snippet"
+        ],
+        "title": "Match",
+        "type": "object"
+      },
+      "ModelInfo": {
+        "properties": {
+          "context_window": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Context Window"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Display Name"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "default": "unknown",
+            "enum": [
+              "chat",
+              "embedding",
+              "rerank",
+              "unknown"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size Bytes"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "ModelInfo",
+        "type": "object"
+      },
+      "ModelPrice": {
+        "description": "USD per million tokens. Only shown as an estimate when present.",
+        "properties": {
+          "input_per_mtok": {
+            "title": "Input Per Mtok",
+            "type": "number"
+          },
+          "model_prefix": {
+            "title": "Model Prefix",
+            "type": "string"
+          },
+          "output_per_mtok": {
+            "title": "Output Per Mtok",
+            "type": "number"
+          },
+          "provider_kind": {
+            "title": "Provider Kind",
+            "type": "string"
+          },
+          "source": {
+            "default": "user",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_kind",
+          "model_prefix",
+          "input_per_mtok",
+          "output_per_mtok"
+        ],
+        "title": "ModelPrice",
+        "type": "object"
+      },
+      "NameChange": {
+        "properties": {
+          "changed_at": {
+            "title": "Changed At",
+            "type": "string"
+          },
+          "new_full_name": {
+            "title": "New Full Name",
+            "type": "string"
+          },
+          "old_full_name": {
+            "title": "Old Full Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "old_full_name",
+          "new_full_name",
+          "changed_at"
+        ],
+        "title": "NameChange",
+        "type": "object"
+      },
+      "Ok": {
+        "properties": {
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "title": "Ok",
+        "type": "object"
+      },
+      "ParsedQuery": {
+        "properties": {
+          "corrections": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TermCorrection"
+            },
+            "title": "Corrections",
+            "type": "array"
+          },
+          "excluded": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Excluded",
+            "type": "array"
+          },
+          "expansions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Expansions",
+            "type": "array"
+          },
+          "operators": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "default": {},
+            "title": "Operators",
+            "type": "object"
+          },
+          "phrases": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Phrases",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ParsedQuery",
+        "type": "object"
+      },
+      "PrivacySettings": {
+        "properties": {
+          "allow_cloud_models": {
+            "default": false,
+            "title": "Allow Cloud Models",
+            "type": "boolean"
+          },
+          "confirm_before_cloud": {
+            "default": true,
+            "title": "Confirm Before Cloud",
+            "type": "boolean"
+          },
+          "offline_mode": {
+            "default": false,
+            "title": "Offline Mode",
+            "type": "boolean"
+          }
+        },
+        "title": "PrivacySettings",
+        "type": "object"
+      },
+      "ProviderCapabilities": {
+        "properties": {
+          "accepts_max_output_tokens": {
+            "default": true,
+            "title": "Accepts Max Output Tokens",
+            "type": "boolean"
+          },
+          "accepts_temperature": {
+            "default": true,
+            "title": "Accepts Temperature",
+            "type": "boolean"
+          },
+          "embeddings": {
+            "default": false,
+            "title": "Embeddings",
+            "type": "boolean"
+          },
+          "is_local": {
+            "title": "Is Local",
+            "type": "boolean"
+          },
+          "is_paid": {
+            "title": "Is Paid",
+            "type": "boolean"
+          },
+          "model_discovery": {
+            "default": true,
+            "title": "Model Discovery",
+            "type": "boolean"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "streaming": {
+            "default": true,
+            "title": "Streaming",
+            "type": "boolean"
+          },
+          "structured_output": {
+            "default": "prompt",
+            "enum": [
+              "json_schema",
+              "json_object",
+              "tool",
+              "prompt"
+            ],
+            "title": "Structured Output",
+            "type": "string"
+          }
+        },
+        "required": [
+          "is_local",
+          "is_paid"
+        ],
+        "title": "ProviderCapabilities",
+        "type": "object"
+      },
+      "ProviderConfig": {
+        "description": "Non-secret configuration row. The API key (if any) is passed separately.",
+        "properties": {
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Base Url"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "ollama",
+              "lmstudio",
+              "vllm",
+              "openai_compat",
+              "openai",
+              "anthropic",
+              "gemini",
+              "azure_openai",
+              "chatgpt_plan"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "additionalProperties": true,
+            "title": "Options",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name"
+        ],
+        "title": "ProviderConfig",
+        "type": "object"
+      },
+      "ProviderCreate": {
+        "properties": {
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Api Key"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Base Url"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Options",
+            "type": "object"
+          }
+        },
+        "required": [
+          "kind",
+          "name"
+        ],
+        "title": "ProviderCreate",
+        "type": "object"
+      },
+      "ProviderErrorInfo": {
+        "properties": {
+          "action_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Action Label"
+          },
+          "action_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Action Url"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Code"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "provider_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Id"
+          },
+          "provider_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Kind"
+          },
+          "retry_after_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Retry After S"
+          },
+          "retryable": {
+            "default": false,
+            "title": "Retryable",
+            "type": "boolean"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Status"
+          }
+        },
+        "required": [
+          "kind",
+          "message"
+        ],
+        "title": "ProviderErrorInfo",
+        "type": "object"
+      },
+      "ProviderInfo": {
+        "properties": {
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Base Url"
+          },
+          "blocked_by_privacy": {
+            "default": false,
+            "title": "Blocked By Privacy",
+            "type": "boolean"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/ProviderCapabilities"
+          },
+          "category": {
+            "enum": [
+              "local",
+              "cloud",
+              "chatgpt_plan"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Created At"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "has_secret": {
+            "default": false,
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Options",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "category",
+          "enabled",
+          "capabilities"
+        ],
+        "title": "ProviderInfo",
+        "type": "object"
+      },
+      "ProviderModels": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProviderErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelInfo"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "models"
+        ],
+        "title": "ProviderModels",
+        "type": "object"
+      },
+      "ProviderOption": {
+        "description": "A provider the user may explicitly switch to. Never selected automatically.",
+        "properties": {
+          "default_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Default Model"
+          },
+          "is_local": {
+            "title": "Is Local",
+            "type": "boolean"
+          },
+          "is_paid": {
+            "title": "Is Paid",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "provider_kind": {
+            "title": "Provider Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "provider_kind",
+          "name",
+          "is_local",
+          "is_paid"
+        ],
+        "title": "ProviderOption",
+        "type": "object"
+      },
+      "ProviderPatch": {
+        "properties": {
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Base Url"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Enabled"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Options"
+          }
+        },
+        "title": "ProviderPatch",
+        "type": "object"
+      },
+      "ProviderTemplate": {
+        "properties": {
+          "api_key_optional": {
+            "default": false,
+            "title": "Api Key Optional",
+            "type": "boolean"
+          },
+          "base_url_editable": {
+            "default": true,
+            "title": "Base Url Editable",
+            "type": "boolean"
+          },
+          "category": {
+            "enum": [
+              "local",
+              "cloud",
+              "chatgpt_plan"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "default_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Default Base Url"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "docs_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Docs Url"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "needs_api_key": {
+            "default": false,
+            "title": "Needs Api Key",
+            "type": "boolean"
+          },
+          "option_fields": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Option Fields",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "label",
+          "category",
+          "description"
+        ],
+        "title": "ProviderTemplate",
+        "type": "object"
+      },
+      "ProviderTestRequest": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          }
+        },
+        "title": "ProviderTestRequest",
+        "type": "object"
+      },
+      "ProviderTestResult": {
+        "properties": {
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProviderErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Latency Ms"
+          },
+          "model_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model Count"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sample"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "ProviderTestResult",
+        "type": "object"
+      },
+      "QueueSummary": {
+        "properties": {
+          "by_type": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "default": {},
+            "title": "By Type",
+            "type": "object"
+          },
+          "eta_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Eta Seconds"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          },
+          "running": {
+            "title": "Running",
+            "type": "integer"
+          },
+          "succeeded_last_hour": {
+            "title": "Succeeded Last Hour",
+            "type": "integer"
+          },
+          "throughput_per_min": {
+            "title": "Throughput Per Min",
+            "type": "number"
+          }
+        },
+        "required": [
+          "queued",
+          "running",
+          "failed",
+          "succeeded_last_hour",
+          "throughput_per_min"
+        ],
+        "title": "QueueSummary",
+        "type": "object"
+      },
+      "RateLimitInfo": {
+        "properties": {
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Limit"
+          },
+          "remaining": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Remaining"
+          },
+          "reset_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reset At"
+          },
+          "resource": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Resource"
+          }
+        },
+        "title": "RateLimitInfo",
+        "type": "object"
+      },
+      "RelatedRepo": {
+        "properties": {
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/RelationReason"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "repo": {
+            "$ref": "#/components/schemas/RepoSummary"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "repo",
+          "score",
+          "reasons"
+        ],
+        "title": "RelatedRepo",
+        "type": "object"
+      },
+      "RelationReason": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "semantic",
+              "topics",
+              "dependencies",
+              "category",
+              "owner",
+              "fork",
+              "language"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "weight": {
+            "default": 0.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kind",
+          "detail"
+        ],
+        "title": "RelationReason",
+        "type": "object"
+      },
+      "RepoDetail": {
+        "properties": {
+          "access_state": {
+            "default": "ok",
+            "enum": [
+              "ok",
+              "not_found",
+              "blocked",
+              "error"
+            ],
+            "title": "Access State",
+            "type": "string"
+          },
+          "categories": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CategoryRef"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "chunk_count": {
+            "default": 0,
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "clone_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Clone Url"
+          },
+          "collections": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CollectionRef"
+            },
+            "title": "Collections",
+            "type": "array"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Created At"
+          },
+          "default_branch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Default Branch"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "doc_count": {
+            "default": 0,
+            "title": "Doc Count",
+            "type": "integer"
+          },
+          "embedded_chunk_count": {
+            "default": 0,
+            "title": "Embedded Chunk Count",
+            "type": "integer"
+          },
+          "favorite": {
+            "default": false,
+            "title": "Favorite",
+            "type": "boolean"
+          },
+          "first_seen_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "First Seen At"
+          },
+          "forks": {
+            "default": 0,
+            "title": "Forks",
+            "type": "integer"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "has_note": {
+            "default": false,
+            "title": "Has Note",
+            "type": "boolean"
+          },
+          "homepage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Homepage"
+          },
+          "html_url": {
+            "title": "Html Url",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "index_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Index Error"
+          },
+          "index_level": {
+            "default": "docs",
+            "enum": [
+              "metadata",
+              "docs",
+              "deep"
+            ],
+            "title": "Index Level",
+            "type": "string"
+          },
+          "index_status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "queued",
+              "indexing",
+              "indexed",
+              "failed",
+              "skipped"
+            ],
+            "title": "Index Status",
+            "type": "string"
+          },
+          "indexed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed At"
+          },
+          "indexed_commit_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed Commit Sha"
+          },
+          "indexed_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "metadata",
+                  "docs",
+                  "deep"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed Level"
+          },
+          "is_archived": {
+            "default": false,
+            "title": "Is Archived",
+            "type": "boolean"
+          },
+          "is_disabled": {
+            "default": false,
+            "title": "Is Disabled",
+            "type": "boolean"
+          },
+          "is_fork": {
+            "default": false,
+            "title": "Is Fork",
+            "type": "boolean"
+          },
+          "is_private": {
+            "default": false,
+            "title": "Is Private",
+            "type": "boolean"
+          },
+          "is_template": {
+            "default": false,
+            "title": "Is Template",
+            "type": "boolean"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Language"
+          },
+          "languages": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "Languages",
+            "type": "object"
+          },
+          "last_opened_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Opened At"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Seen At"
+          },
+          "license_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "License Name"
+          },
+          "license_spdx": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "License Spdx"
+          },
+          "maintenance": {
+            "default": "unknown",
+            "enum": [
+              "active",
+              "maintained",
+              "slowing",
+              "stale",
+              "archived",
+              "unknown"
+            ],
+            "title": "Maintenance",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "name_history": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/NameChange"
+            },
+            "title": "Name History",
+            "type": "array"
+          },
+          "node_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Node Id"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "open_count": {
+            "default": 0,
+            "title": "Open Count",
+            "type": "integer"
+          },
+          "open_issues": {
+            "default": 0,
+            "title": "Open Issues",
+            "type": "integer"
+          },
+          "owner": {
+            "title": "Owner",
+            "type": "string"
+          },
+          "owner_avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Owner Avatar Url"
+          },
+          "parent_full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parent Full Name"
+          },
+          "priority": {
+            "default": 0,
+            "title": "Priority",
+            "type": "integer"
+          },
+          "pushed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pushed At"
+          },
+          "size_kb": {
+            "default": 0,
+            "title": "Size Kb",
+            "type": "integer"
+          },
+          "star_state": {
+            "default": "starred",
+            "enum": [
+              "starred",
+              "unstarred"
+            ],
+            "title": "Star State",
+            "type": "string"
+          },
+          "starred_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Starred At"
+          },
+          "stars": {
+            "default": 0,
+            "title": "Stars",
+            "type": "integer"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topics": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          },
+          "tree_truncated": {
+            "default": false,
+            "title": "Tree Truncated",
+            "type": "boolean"
+          },
+          "unstarred_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Unstarred At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Updated At"
+          },
+          "watchers": {
+            "default": 0,
+            "title": "Watchers",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "owner",
+          "name",
+          "html_url"
+        ],
+        "title": "RepoDetail",
+        "type": "object"
+      },
+      "RepoFilters": {
+        "description": "Structured filters shared by the library listing and every search mode.",
+        "properties": {
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Archived"
+          },
+          "categories": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "collections": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Collections",
+            "type": "array"
+          },
+          "favorite": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Favorite"
+          },
+          "fork": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fork"
+          },
+          "has_note": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Has Note"
+          },
+          "index_status": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Index Status",
+            "type": "array"
+          },
+          "indexed_level": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Indexed Level",
+            "type": "array"
+          },
+          "languages": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Languages",
+            "type": "array"
+          },
+          "licenses": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Licenses",
+            "type": "array"
+          },
+          "maintenance": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Maintenance",
+            "type": "array"
+          },
+          "max_size_kb": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Size Kb"
+          },
+          "max_stars": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Stars"
+          },
+          "min_size_kb": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Size Kb"
+          },
+          "min_stars": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Stars"
+          },
+          "owners": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Owners",
+            "type": "array"
+          },
+          "pushed_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pushed After"
+          },
+          "pushed_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pushed Before"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "star_state": {
+            "default": "starred",
+            "enum": [
+              "starred",
+              "unstarred",
+              "all"
+            ],
+            "title": "Star State",
+            "type": "string"
+          },
+          "starred_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Starred After"
+          },
+          "starred_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Starred Before"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topics": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "title": "RepoFilters",
+        "type": "object"
+      },
+      "RepoIds": {
+        "properties": {
+          "repo_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "repo_ids"
+        ],
+        "title": "RepoIds",
+        "type": "object"
+      },
+      "RepoListRequest": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/RepoFilters"
+          },
+          "limit": {
+            "default": 50,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "order": {
+            "default": "desc",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "title": "Order",
+            "type": "string"
+          },
+          "sort": {
+            "default": "starred_at",
+            "enum": [
+              "starred_at",
+              "stars",
+              "pushed_at",
+              "name",
+              "updated_at",
+              "last_opened",
+              "size",
+              "priority"
+            ],
+            "title": "Sort",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "title": "RepoListRequest",
+        "type": "object"
+      },
+      "RepoPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "RepoPage",
+        "type": "object"
+      },
+      "RepoSummary": {
+        "description": "Compact repository card used in lists and search results.",
+        "properties": {
+          "access_state": {
+            "default": "ok",
+            "enum": [
+              "ok",
+              "not_found",
+              "blocked",
+              "error"
+            ],
+            "title": "Access State",
+            "type": "string"
+          },
+          "categories": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CategoryRef"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "collections": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CollectionRef"
+            },
+            "title": "Collections",
+            "type": "array"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Created At"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "favorite": {
+            "default": false,
+            "title": "Favorite",
+            "type": "boolean"
+          },
+          "forks": {
+            "default": 0,
+            "title": "Forks",
+            "type": "integer"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "has_note": {
+            "default": false,
+            "title": "Has Note",
+            "type": "boolean"
+          },
+          "homepage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Homepage"
+          },
+          "html_url": {
+            "title": "Html Url",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "index_level": {
+            "default": "docs",
+            "enum": [
+              "metadata",
+              "docs",
+              "deep"
+            ],
+            "title": "Index Level",
+            "type": "string"
+          },
+          "index_status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "queued",
+              "indexing",
+              "indexed",
+              "failed",
+              "skipped"
+            ],
+            "title": "Index Status",
+            "type": "string"
+          },
+          "indexed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed At"
+          },
+          "indexed_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "metadata",
+                  "docs",
+                  "deep"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Indexed Level"
+          },
+          "is_archived": {
+            "default": false,
+            "title": "Is Archived",
+            "type": "boolean"
+          },
+          "is_fork": {
+            "default": false,
+            "title": "Is Fork",
+            "type": "boolean"
+          },
+          "is_private": {
+            "default": false,
+            "title": "Is Private",
+            "type": "boolean"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Language"
+          },
+          "license_spdx": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "License Spdx"
+          },
+          "maintenance": {
+            "default": "unknown",
+            "enum": [
+              "active",
+              "maintained",
+              "slowing",
+              "stale",
+              "archived",
+              "unknown"
+            ],
+            "title": "Maintenance",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner": {
+            "title": "Owner",
+            "type": "string"
+          },
+          "owner_avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Owner Avatar Url"
+          },
+          "priority": {
+            "default": 0,
+            "title": "Priority",
+            "type": "integer"
+          },
+          "pushed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pushed At"
+          },
+          "size_kb": {
+            "default": 0,
+            "title": "Size Kb",
+            "type": "integer"
+          },
+          "star_state": {
+            "default": "starred",
+            "enum": [
+              "starred",
+              "unstarred"
+            ],
+            "title": "Star State",
+            "type": "string"
+          },
+          "starred_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Starred At"
+          },
+          "stars": {
+            "default": 0,
+            "title": "Stars",
+            "type": "integer"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "topics": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "owner",
+          "name",
+          "html_url"
+        ],
+        "title": "RepoSummary",
+        "type": "object"
+      },
+      "RepoSummaryText": {
+        "description": "Cached AI-generated text about one repository (summary or usage ideas).",
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Created At"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "summary",
+              "usage_ideas"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider"
+          },
+          "repo_id": {
+            "title": "Repo Id",
+            "type": "integer"
+          },
+          "stale": {
+            "default": false,
+            "title": "Stale",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "repo_id",
+          "kind"
+        ],
+        "title": "RepoSummaryText",
+        "type": "object"
+      },
+      "Report": {
+        "properties": {
+          "answer_md": {
+            "default": "",
+            "title": "Answer Md",
+            "type": "string"
+          },
+          "collections": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CollectionRef"
+            },
+            "title": "Collections",
+            "type": "array"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Data",
+            "type": "object"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "ask",
+              "research",
+              "compare",
+              "usage_ideas"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "provider_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Id"
+          },
+          "provider_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Kind"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "repos": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RepoSummary"
+            },
+            "title": "Repos",
+            "type": "array"
+          },
+          "saved": {
+            "title": "Saved",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "trace": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TraceStep"
+            },
+            "title": "Trace",
+            "type": "array"
+          },
+          "unsupported": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/UnsupportedCitation"
+            },
+            "title": "Unsupported",
+            "type": "array"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageInfo"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "question",
+          "status",
+          "saved",
+          "created_at"
+        ],
+        "title": "Report",
+        "type": "object"
+      },
+      "ReportPatch": {
+        "properties": {
+          "collection_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Collection Ids"
+          },
+          "saved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Saved"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Title"
+          }
+        },
+        "title": "ReportPatch",
+        "type": "object"
+      },
+      "ReportSummary": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "ask",
+              "research",
+              "compare",
+              "usage_ideas"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "provider_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Id"
+          },
+          "provider_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Provider Kind"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "saved": {
+            "title": "Saved",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "question",
+          "status",
+          "saved",
+          "created_at"
+        ],
+        "title": "ReportSummary",
+        "type": "object"
+      },
+      "RerankSettings": {
+        "properties": {
+          "backend": {
+            "default": "fastembed",
+            "enum": [
+              "fastembed",
+              "none"
+            ],
+            "title": "Backend",
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "model": {
+            "default": "Xenova/ms-marco-MiniLM-L-6-v2",
+            "title": "Model",
+            "type": "string"
+          },
+          "top_n": {
+            "default": 30,
+            "maximum": 200,
+            "minimum": 5,
+            "title": "Top N",
+            "type": "integer"
+          }
+        },
+        "title": "RerankSettings",
+        "type": "object"
+      },
+      "ResearchLimits": {
+        "properties": {
+          "max_context_chars": {
+            "default": 36000,
+            "maximum": 400000,
+            "minimum": 2000,
+            "title": "Max Context Chars",
+            "type": "integer"
+          },
+          "max_output_tokens": {
+            "default": 3000,
+            "maximum": 32000,
+            "minimum": 128,
+            "title": "Max Output Tokens",
+            "type": "integer"
+          },
+          "max_seconds": {
+            "default": 240,
+            "maximum": 3600,
+            "minimum": 10,
+            "title": "Max Seconds",
+            "type": "integer"
+          },
+          "max_tool_calls": {
+            "default": 12,
+            "maximum": 60,
+            "minimum": 1,
+            "title": "Max Tool Calls",
+            "type": "integer"
+          },
+          "max_total_tokens": {
+            "default": 150000,
+            "maximum": 5000000,
+            "minimum": 2000,
+            "title": "Max Total Tokens",
+            "type": "integer"
+          }
+        },
+        "title": "ResearchLimits",
+        "type": "object"
+      },
+      "ResearchLimitsOverride": {
+        "properties": {
+          "max_context_chars": {
+            "anyOf": [
+              {
+                "maximum": 400000,
+                "minimum": 2000,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Context Chars"
+          },
+          "max_seconds": {
+            "anyOf": [
+              {
+                "maximum": 3600,
+                "minimum": 10,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Seconds"
+          },
+          "max_tool_calls": {
+            "anyOf": [
+              {
+                "maximum": 60,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Tool Calls"
+          }
+        },
+        "title": "ResearchLimitsOverride",
+        "type": "object"
+      },
+      "ResearchRequest": {
+        "properties": {
+          "capability": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "discovery",
+              "comparison",
+              "composition",
+              "gap_analysis",
+              "scouting",
+              "relationships"
+            ],
+            "title": "Capability",
+            "type": "string"
+          },
+          "collection_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Collection Id"
+          },
+          "confirm_cloud": {
+            "default": false,
+            "title": "Confirm Cloud",
+            "type": "boolean"
+          },
+          "limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchLimitsOverride"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "question": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RouteOverride"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "ResearchRequest",
+        "type": "object"
+      },
+      "RestoreRequest": {
+        "properties": {
+          "confirm": {
+            "default": false,
+            "title": "Confirm",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "RestoreRequest",
+        "type": "object"
+      },
+      "ResultSignals": {
+        "properties": {
+          "fused_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fused Score"
+          },
+          "lexical_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Lexical Rank"
+          },
+          "name_match": {
+            "default": false,
+            "title": "Name Match",
+            "type": "boolean"
+          },
+          "prior": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Prior"
+          },
+          "rerank_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rerank Score"
+          },
+          "semantic_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Semantic Rank"
+          }
+        },
+        "title": "ResultSignals",
+        "type": "object"
+      },
+      "Route": {
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "model"
+        ],
+        "title": "Route",
+        "type": "object"
+      },
+      "RouteOverride": {
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "model"
+        ],
+        "title": "RouteOverride",
+        "type": "object"
+      },
+      "RoutingInfo": {
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Route"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "effective": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Route"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "default": {},
+            "propertyNames": {
+              "enum": [
+                "classify",
+                "summarize",
+                "expand_query",
+                "answer",
+                "reasoning",
+                "compare"
+              ]
+            },
+            "title": "Effective",
+            "type": "object"
+          },
+          "task_labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "propertyNames": {
+              "enum": [
+                "classify",
+                "summarize",
+                "expand_query",
+                "answer",
+                "reasoning",
+                "compare"
+              ]
+            },
+            "title": "Task Labels",
+            "type": "object"
+          },
+          "tasks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Route"
+            },
+            "default": {},
+            "propertyNames": {
+              "enum": [
+                "classify",
+                "summarize",
+                "expand_query",
+                "answer",
+                "reasoning",
+                "compare"
+              ]
+            },
+            "title": "Tasks",
+            "type": "object"
+          }
+        },
+        "title": "RoutingInfo",
+        "type": "object"
+      },
+      "RoutingSettings": {
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Route"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "tasks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Route"
+            },
+            "propertyNames": {
+              "enum": [
+                "classify",
+                "summarize",
+                "expand_query",
+                "answer",
+                "reasoning",
+                "compare"
+              ]
+            },
+            "title": "Tasks",
+            "type": "object"
+          }
+        },
+        "title": "RoutingSettings",
+        "type": "object"
+      },
+      "RoutingUpdate": {
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Route"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "tasks": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Route"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "default": {},
+            "propertyNames": {
+              "enum": [
+                "classify",
+                "summarize",
+                "expand_query",
+                "answer",
+                "reasoning",
+                "compare"
+              ]
+            },
+            "title": "Tasks",
+            "type": "object"
+          }
+        },
+        "title": "RoutingUpdate",
+        "type": "object"
+      },
+      "SavedSearch": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Run At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/SearchRequest"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "request",
+          "created_at"
+        ],
+        "title": "SavedSearch",
+        "type": "object"
+      },
+      "SavedSearchCreate": {
+        "properties": {
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/SearchRequest"
+          }
+        },
+        "required": [
+          "name",
+          "request"
+        ],
+        "title": "SavedSearchCreate",
+        "type": "object"
+      },
+      "Schedule": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "interval_minutes": {
+            "title": "Interval Minutes",
+            "type": "integer"
+          },
+          "job_type": {
+            "title": "Job Type",
+            "type": "string"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Run At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Next Run At"
+          }
+        },
+        "required": [
+          "name",
+          "job_type",
+          "interval_minutes",
+          "enabled"
+        ],
+        "title": "Schedule",
+        "type": "object"
+      },
+      "SchedulePatch": {
+        "properties": {
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Enabled"
+          },
+          "interval_minutes": {
+            "anyOf": [
+              {
+                "maximum": 525600,
+                "minimum": 5,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Interval Minutes"
+          }
+        },
+        "title": "SchedulePatch",
+        "type": "object"
+      },
+      "SearchHistoryEntry": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/RepoFilters"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "result_count": {
+            "title": "Result Count",
+            "type": "integer"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "query",
+          "mode",
+          "scope",
+          "filters",
+          "result_count",
+          "created_at"
+        ],
+        "title": "SearchHistoryEntry",
+        "type": "object"
+      },
+      "SearchRequest": {
+        "properties": {
+          "explain": {
+            "default": false,
+            "title": "Explain",
+            "type": "boolean"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/RepoFilters"
+          },
+          "limit": {
+            "default": 25,
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "mode": {
+            "default": "hybrid",
+            "enum": [
+              "keyword",
+              "semantic",
+              "hybrid"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "query": {
+            "default": "",
+            "title": "Query",
+            "type": "string"
+          },
+          "record": {
+            "default": true,
+            "title": "Record",
+            "type": "boolean"
+          },
+          "rerank": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rerank"
+          },
+          "scope": {
+            "default": "repos",
+            "enum": [
+              "repos",
+              "docs",
+              "code"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "sort": {
+            "default": "relevance",
+            "enum": [
+              "relevance",
+              "stars",
+              "pushed_at",
+              "starred_at",
+              "name"
+            ],
+            "title": "Sort",
+            "type": "string"
+          }
+        },
+        "title": "SearchRequest",
+        "type": "object"
+      },
+      "SearchResponse": {
+        "properties": {
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Embedding Model"
+          },
+          "facets": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Facets"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "mode": {
+            "enum": [
+              "keyword",
+              "semantic",
+              "hybrid"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "notices": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "parsed": {
+            "$ref": "#/components/schemas/ParsedQuery"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "requested_mode": {
+            "enum": [
+              "keyword",
+              "semantic",
+              "hybrid"
+            ],
+            "title": "Requested Mode",
+            "type": "string"
+          },
+          "reranked": {
+            "default": false,
+            "title": "Reranked",
+            "type": "boolean"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "scope": {
+            "enum": [
+              "repos",
+              "docs",
+              "code"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "took_ms": {
+            "title": "Took Ms",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query",
+          "mode",
+          "requested_mode",
+          "scope",
+          "parsed",
+          "total",
+          "took_ms",
+          "results"
+        ],
+        "title": "SearchResponse",
+        "type": "object"
+      },
+      "SearchResult": {
+        "properties": {
+          "field_highlights": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "title": "Field Highlights",
+            "type": "object"
+          },
+          "matches": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Match"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "repo": {
+            "$ref": "#/components/schemas/RepoSummary"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "signals": {
+            "$ref": "#/components/schemas/ResultSignals"
+          }
+        },
+        "required": [
+          "repo",
+          "score"
+        ],
+        "title": "SearchResult",
+        "type": "object"
+      },
+      "SearchSettings": {
+        "properties": {
+          "default_mode": {
+            "default": "hybrid",
+            "enum": [
+              "keyword",
+              "semantic",
+              "hybrid"
+            ],
+            "title": "Default Mode",
+            "type": "string"
+          },
+          "freshness_boost": {
+            "default": 0.03,
+            "maximum": 0.25,
+            "minimum": 0,
+            "title": "Freshness Boost",
+            "type": "number"
+          },
+          "lexical_weight": {
+            "default": 1.0,
+            "maximum": 5,
+            "minimum": 0,
+            "title": "Lexical Weight",
+            "type": "number"
+          },
+          "max_results_per_owner": {
+            "default": 0,
+            "maximum": 50,
+            "minimum": 0,
+            "title": "Max Results Per Owner",
+            "type": "integer"
+          },
+          "popularity_boost": {
+            "default": 0.03,
+            "maximum": 0.25,
+            "minimum": 0,
+            "title": "Popularity Boost",
+            "type": "number"
+          },
+          "query_expansion": {
+            "default": "off",
+            "enum": [
+              "off",
+              "auto"
+            ],
+            "title": "Query Expansion",
+            "type": "string"
+          },
+          "rrf_k": {
+            "default": 60,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Rrf K",
+            "type": "integer"
+          },
+          "save_history": {
+            "default": true,
+            "title": "Save History",
+            "type": "boolean"
+          },
+          "semantic_weight": {
+            "default": 1.0,
+            "maximum": 5,
+            "minimum": 0,
+            "title": "Semantic Weight",
+            "type": "number"
+          },
+          "typo_tolerance": {
+            "default": true,
+            "title": "Typo Tolerance",
+            "type": "boolean"
+          }
+        },
+        "title": "SearchSettings",
+        "type": "object"
+      },
+      "SecretUpdate": {
+        "properties": {
+          "api_key": {
+            "minLength": 1,
+            "title": "Api Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "api_key"
+        ],
+        "title": "SecretUpdate",
+        "type": "object"
+      },
+      "SettingsPatch": {
+        "description": "Partial, deep-merged update of AppSettings.",
+        "properties": {
+          "patch": {
+            "additionalProperties": true,
+            "title": "Patch",
+            "type": "object"
+          }
+        },
+        "required": [
+          "patch"
+        ],
+        "title": "SettingsPatch",
+        "type": "object"
+      },
+      "SharedItem": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "repo_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "repo_ids"
+        ],
+        "title": "SharedItem",
+        "type": "object"
+      },
+      "StorageInfo": {
+        "properties": {
+          "backups_bytes": {
+            "title": "Backups Bytes",
+            "type": "integer"
+          },
+          "data_dir": {
+            "title": "Data Dir",
+            "type": "string"
+          },
+          "database_bytes": {
+            "title": "Database Bytes",
+            "type": "integer"
+          },
+          "embeddings_rows": {
+            "default": 0,
+            "title": "Embeddings Rows",
+            "type": "integer"
+          },
+          "free_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Free Bytes"
+          },
+          "models_bytes": {
+            "title": "Models Bytes",
+            "type": "integer"
+          },
+          "vector_bytes": {
+            "title": "Vector Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data_dir",
+          "database_bytes",
+          "vector_bytes",
+          "models_bytes",
+          "backups_bytes"
+        ],
+        "title": "StorageInfo",
+        "type": "object"
+      },
+      "StorageSettings": {
+        "properties": {
+          "backup_enabled": {
+            "default": true,
+            "title": "Backup Enabled",
+            "type": "boolean"
+          },
+          "backup_interval_hours": {
+            "default": 168,
+            "maximum": 8760,
+            "minimum": 1,
+            "title": "Backup Interval Hours",
+            "type": "integer"
+          },
+          "backup_keep": {
+            "default": 5,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Backup Keep",
+            "type": "integer"
+          }
+        },
+        "title": "StorageSettings",
+        "type": "object"
+      },
+      "StreamEvent": {
+        "description": "delta* then exactly one terminal ``completed``. Failures raise ``ProviderError``.",
+        "properties": {
+          "finish_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Finish Reason"
+          },
+          "text": {
+            "default": "",
+            "title": "Text",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "delta",
+              "completed"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Usage"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "StreamEvent",
+        "type": "object"
+      },
+      "Suggestion": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Detail"
+          },
+          "kind": {
+            "enum": [
+              "repo",
+              "topic",
+              "language",
+              "history",
+              "saved",
+              "operator"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "repo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Repo Id"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "text"
+        ],
+        "title": "Suggestion",
+        "type": "object"
+      },
+      "SyncRun": {
+        "properties": {
+          "added": {
+            "default": 0,
+            "title": "Added",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "full",
+              "incremental"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "not_modified": {
+            "default": false,
+            "title": "Not Modified",
+            "type": "boolean"
+          },
+          "pages_fetched": {
+            "default": 0,
+            "title": "Pages Fetched",
+            "type": "integer"
+          },
+          "renamed": {
+            "default": 0,
+            "title": "Renamed",
+            "type": "integer"
+          },
+          "repos_seen": {
+            "default": 0,
+            "title": "Repos Seen",
+            "type": "integer"
+          },
+          "restarred": {
+            "default": 0,
+            "title": "Restarred",
+            "type": "integer"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "interrupted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total_expected": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Total Expected"
+          },
+          "unstarred": {
+            "default": 0,
+            "title": "Unstarred",
+            "type": "integer"
+          },
+          "updated": {
+            "default": 0,
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "started_at"
+        ],
+        "title": "SyncRun",
+        "type": "object"
+      },
+      "SyncSettings": {
+        "properties": {
+          "full_interval_hours": {
+            "default": 168,
+            "maximum": 2160,
+            "minimum": 1,
+            "title": "Full Interval Hours",
+            "type": "integer"
+          },
+          "incremental_interval_minutes": {
+            "default": 360,
+            "maximum": 10080,
+            "minimum": 15,
+            "title": "Incremental Interval Minutes",
+            "type": "integer"
+          },
+          "scheduled_sync_enabled": {
+            "default": true,
+            "title": "Scheduled Sync Enabled",
+            "type": "boolean"
+          },
+          "unstarred_retention": {
+            "default": "keep",
+            "enum": [
+              "keep",
+              "keep_annotated",
+              "delete"
+            ],
+            "title": "Unstarred Retention",
+            "type": "string"
+          }
+        },
+        "title": "SyncSettings",
+        "type": "object"
+      },
+      "SyncStartRequest": {
+        "properties": {
+          "kind": {
+            "default": "incremental",
+            "enum": [
+              "full",
+              "incremental"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "title": "SyncStartRequest",
+        "type": "object"
+      },
+      "SyncStatus": {
+        "properties": {
+          "current_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SyncRun"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "github": {
+            "$ref": "#/components/schemas/GitHubAuthStatus"
+          },
+          "index": {
+            "$ref": "#/components/schemas/IndexProgress"
+          },
+          "last_full": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SyncRun"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "last_incremental": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SyncRun"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "next_scheduled_sync": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Next Scheduled Sync"
+          },
+          "queue": {
+            "$ref": "#/components/schemas/QueueSummary"
+          },
+          "rate_limit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RateLimitInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "worker": {
+            "$ref": "#/components/schemas/WorkerInfo"
+          }
+        },
+        "required": [
+          "github",
+          "index",
+          "queue",
+          "worker"
+        ],
+        "title": "SyncStatus",
+        "type": "object"
+      },
+      "SystemStatus": {
+        "properties": {
+          "cloud_allowed": {
+            "title": "Cloud Allowed",
+            "type": "boolean"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/Counts"
+          },
+          "data_dir": {
+            "title": "Data Dir",
+            "type": "string"
+          },
+          "embedding": {
+            "$ref": "#/components/schemas/EmbeddingStatus"
+          },
+          "first_run": {
+            "title": "First Run",
+            "type": "boolean"
+          },
+          "github": {
+            "$ref": "#/components/schemas/GitHubAuthStatus"
+          },
+          "llm": {
+            "$ref": "#/components/schemas/LlmStatus"
+          },
+          "offline_mode": {
+            "title": "Offline Mode",
+            "type": "boolean"
+          },
+          "onboarding_completed": {
+            "title": "Onboarding Completed",
+            "type": "boolean"
+          },
+          "secret_backend": {
+            "title": "Secret Backend",
+            "type": "string"
+          },
+          "vector_backend": {
+            "title": "Vector Backend",
+            "type": "string"
+          },
+          "vector_ok": {
+            "title": "Vector Ok",
+            "type": "boolean"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "worker": {
+            "$ref": "#/components/schemas/WorkerInfo"
+          }
+        },
+        "required": [
+          "version",
+          "data_dir",
+          "first_run",
+          "onboarding_completed",
+          "github",
+          "counts",
+          "embedding",
+          "vector_backend",
+          "vector_ok",
+          "llm",
+          "worker",
+          "secret_backend",
+          "cloud_allowed",
+          "offline_mode"
+        ],
+        "title": "SystemStatus",
+        "type": "object"
+      },
+      "Tag": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "count"
+        ],
+        "title": "Tag",
+        "type": "object"
+      },
+      "TagsUpdate": {
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tags"
+        ],
+        "title": "TagsUpdate",
+        "type": "object"
+      },
+      "TermCorrection": {
+        "properties": {
+          "corrected": {
+            "title": "Corrected",
+            "type": "string"
+          },
+          "original": {
+            "title": "Original",
+            "type": "string"
+          }
+        },
+        "required": [
+          "original",
+          "corrected"
+        ],
+        "title": "TermCorrection",
+        "type": "object"
+      },
+      "TraceStep": {
+        "description": "Research Trace entry: what was done, never the model's private reasoning.",
+        "properties": {
+          "arguments": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Arguments",
+            "type": "object"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Duration Ms"
+          },
+          "evidence_refs": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "plan",
+              "tool",
+              "note",
+              "synthesis",
+              "limit",
+              "warning"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "summary": {
+            "default": "",
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tool"
+          }
+        },
+        "required": [
+          "index",
+          "kind",
+          "title"
+        ],
+        "title": "TraceStep",
+        "type": "object"
+      },
+      "UnsupportedCitation": {
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "reason"
+        ],
+        "title": "UnsupportedCitation",
+        "type": "object"
+      },
+      "Usage": {
+        "properties": {
+          "estimated": {
+            "default": false,
+            "title": "Estimated",
+            "type": "boolean"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Output Tokens"
+          }
+        },
+        "title": "Usage",
+        "type": "object"
+      },
+      "UsageInfo": {
+        "properties": {
+          "calls": {
+            "default": 0,
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Usd"
+          },
+          "estimated": {
+            "default": false,
+            "title": "Estimated",
+            "type": "boolean"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Output Tokens"
+          }
+        },
+        "title": "UsageInfo",
+        "type": "object"
+      },
+      "UsageRow": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Usd"
+          },
+          "estimated": {
+            "default": false,
+            "title": "Estimated",
+            "type": "boolean"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "provider_id": {
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "provider_kind": {
+            "title": "Provider Kind",
+            "type": "string"
+          },
+          "task": {
+            "title": "Task",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "provider_kind",
+          "model",
+          "task",
+          "calls",
+          "input_tokens",
+          "output_tokens"
+        ],
+        "title": "UsageRow",
+        "type": "object"
+      },
+      "UsageSummary": {
+        "properties": {
+          "pricing_note": {
+            "default": "",
+            "title": "Pricing Note",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "since": {
+            "title": "Since",
+            "type": "string"
+          },
+          "total_cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Total Cost Usd"
+          }
+        },
+        "required": [
+          "since",
+          "rows"
+        ],
+        "title": "UsageSummary",
+        "type": "object"
+      },
+      "WorkerInfo": {
+        "properties": {
+          "alive": {
+            "title": "Alive",
+            "type": "boolean"
+          },
+          "last_seen": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Seen"
+          },
+          "mode": {
+            "default": "none",
+            "enum": [
+              "embedded",
+              "external",
+              "none"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "worker_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Worker Id"
+          }
+        },
+        "required": [
+          "alive"
+        ],
+        "title": "WorkerInfo",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "StarIndex API schemas",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {}
+}
