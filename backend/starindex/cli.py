@@ -157,6 +157,21 @@ def cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_mcp(args: argparse.Namespace) -> int:
+    """MCP server over stdio. stdout carries protocol messages only, so logging stays in the log file."""
+    import logging
+
+    from .config import get_config
+    from .mcp_server import run_stdio
+
+    config = get_config()
+    config.paths.ensure()
+    logging.basicConfig(filename=str(config.paths.logs_dir / "mcp.log"), level=logging.WARNING)
+    base = args.url or f"http://127.0.0.1:{config.port}"
+    run_stdio(base, config.access_token)
+    return 0
+
+
 def cmd_paths(args: argparse.Namespace) -> int:
     from .config import get_config
 
@@ -203,6 +218,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--format", choices=["json", "csv"], default="json")
     p.add_argument("--output")
     p.set_defaults(fn=cmd_export)
+
+    p = sub.add_parser("mcp", help="Run as an MCP server over stdio (for Claude Code, Claude Desktop and other agents).")
+    p.add_argument("--url", help="Address of the running StarIndex application (default: http://127.0.0.1:<port>).")
+    p.set_defaults(fn=cmd_mcp)
 
     p = sub.add_parser("paths", help="Show where StarIndex keeps its data.")
     p.set_defaults(fn=cmd_paths)

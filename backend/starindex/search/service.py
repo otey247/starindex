@@ -110,6 +110,8 @@ class SearchService:
             raise VectorUnavailable(str(exc)) from exc
 
     def semantic_ready(self) -> tuple[bool, str]:
+        if getattr(self.ctx, "keyword_only", False):
+            return False, "Semantic search needs the running StarIndex application."
         emb = self.ctx.embeddings
         if not emb.enabled:
             return False, "Semantic search is turned off in Settings."
@@ -171,9 +173,10 @@ class SearchService:
 
     # ------------------------------------------------------------------ main entry
 
-    def search(self, req: SearchRequest, *, _nested: bool = False) -> SearchResponse:
+    def search(self, req: SearchRequest, *, _nested: bool = False, _settings=None) -> SearchResponse:
+        """``_settings`` evaluates a request under alternative settings without persisting them."""
         started = time.monotonic()
-        settings = self.ctx.settings
+        settings = _settings or self.ctx.settings
         q, filters = parse_query(req.query, req.filters)
         if settings.search.typo_tolerance and q.terms:
             self.typos.apply(q)
@@ -335,7 +338,7 @@ class SearchService:
         query_text = q.text or q.raw
         for wrong, right in q.corrections.items():
             query_text = re.sub(rf"\b{re.escape(wrong)}\b", right, query_text, flags=re.IGNORECASE)
-        scores = self.ctx.reranker.score(query_text, passages)
+        scores = self.ctx.reranker.score(query_text, passages, force=True)
         if scores is None:
             return False
         order = sorted(range(len(top)), key=lambda i: scores[i], reverse=True)

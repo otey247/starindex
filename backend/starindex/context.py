@@ -39,6 +39,7 @@ class AppContext:
         self.settings_store = SettingsStore(self.db)
         self._lock = threading.RLock()
         self.worker_mode: str = "none"   # embedded | external | none (set by whoever starts a worker)
+        self.keyword_only: bool = False  # True in helper processes that must not open the vector index
 
     # -- configuration --------------------------------------------------------------------
 

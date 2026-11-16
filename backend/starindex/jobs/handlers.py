@@ -159,7 +159,15 @@ def cleanup(ctx: AppContext, job: JobHandle) -> dict[str, Any]:
     return {"jobs_removed": removed_jobs, "collections_dropped": dropped, "embeddings_removed": stale, "at": utcnow()}
 
 
+def evaluate_search(ctx: AppContext, job: JobHandle) -> dict[str, Any]:
+    from ..search.evaluation import run_personal_eval
+
+    run = run_personal_eval(ctx, job)
+    return {"run_id": run["id"], "queries": run["queries"], "best_config": run["best_config"]}
+
+
 HANDLERS: dict[str, Handler] = {
+    "evaluate_search": evaluate_search,
     "sync_full": sync_full,
     "sync_incremental": sync_incremental,
     "index_repo": index_repo,

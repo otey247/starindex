@@ -151,10 +151,11 @@ def create_app(ctx: AppContext | None = None, *, start_worker: bool | None = Non
             status_code=500,
         )
 
-    from .routes import agent, chatgpt, jobs, library, providers, system
+    from .routes import agent, chatgpt, extensions, jobs, library, providers, system
 
-    for module in (system, jobs, library, agent, providers, chatgpt):
+    for module in (system, jobs, extensions, library, agent, providers, chatgpt):
         app.include_router(module.router, prefix="/api")
+    app.include_router(extensions.mcp_router)
 
     @app.api_route("/api/{rest:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"], include_in_schema=False)
     async def api_not_found(rest: str):

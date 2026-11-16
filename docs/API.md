@@ -147,3 +147,23 @@ Search query operators (parsed server-side, reported in `SearchResponse.parsed.o
 | POST | `/chatgpt/accounts/{id}/sign-out` | | `ChatGPTStatus` |
 | DELETE | `/chatgpt/accounts/{id}` | | `ChatGPTStatus` |
 | POST | `/chatgpt/accounts/{id}/welcome-shown` | | `Ok` |
+
+## Relevance feedback and personal evaluation
+| Method | Path | Request | Response |
+|---|---|---|---|
+| POST | `/search/feedback` | `SearchFeedbackCreate` | `SearchFeedback` (upsert per query + repository; verdicts `relevant`, `not_relevant`, `missing`) |
+| GET | `/search/feedback?query=` | | `SearchFeedback[]` (verdicts for that query; without `query`, the most recent) |
+| GET | `/search/feedback/queries` | | `FeedbackQuery[]` (the personal evaluation set, grouped by query) |
+| DELETE | `/search/feedback/{id}` | | `Ok` |
+| GET | `/search/feedback/export` | | JSON download in the shape of `eval/queries.yaml` |
+| GET | `/eval/status` | | `EvalStatus` (counts, whether a run is in progress, latest `EvalRun`) |
+| POST | `/eval/run` | | `Job` (`evaluate_search`); poll `/eval/status` until `running` is false |
+| POST | `/eval/apply` | | `AppSettings` (applies `latest.suggested_settings`; 409 when there is no suggestion) |
+
+## Tools for other agents (MCP)
+| Method | Path | Request | Response |
+|---|---|---|---|
+| GET | `/tools` | | `ToolInfo[]` |
+| POST | `/tools/{name}` | `ToolCall` | `ToolCallResult` |
+| GET | `/mcp/info` | | `McpInfo` (connection commands and config to copy) |
+| POST | `/mcp` (not under `/api`) | JSON-RPC 2.0 | MCP Streamable HTTP endpoint (JSON responses) |

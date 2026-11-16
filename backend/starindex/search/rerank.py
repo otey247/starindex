@@ -60,9 +60,12 @@ class Reranker:
                 log.warning(self._failed)
             return self._model
 
-    def score(self, query: str, passages: list[str]) -> list[float] | None:
-        """Relevance score per passage (higher is better), or None when reranking is unavailable."""
-        if not self.enabled or not passages:
+    def score(self, query: str, passages: list[str], *, force: bool = False) -> list[float] | None:
+        """Relevance score per passage (higher is better), or None when reranking is unavailable.
+
+        ``force`` skips the global on/off setting (the caller already decided, e.g. a per-request override).
+        """
+        if not passages or self.ctx.settings.rerank.backend == "none" or not (force or self.enabled):
             return None
         model = self._load()
         if model is None:

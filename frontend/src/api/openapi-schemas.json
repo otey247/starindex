@@ -1664,6 +1664,179 @@
         "title": "ErrorBody",
         "type": "object"
       },
+      "EvalConfigResult": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "config": {
+            "title": "Config",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "latency_ms_median": {
+            "title": "Latency Ms Median",
+            "type": "number"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "mrr": {
+            "title": "Mrr",
+            "type": "number"
+          },
+          "ndcg_at_10": {
+            "title": "Ndcg At 10",
+            "type": "number"
+          },
+          "recall_at_10": {
+            "title": "Recall At 10",
+            "type": "number"
+          },
+          "rejected_in_top_10": {
+            "title": "Rejected In Top 10",
+            "type": "number"
+          },
+          "rerank": {
+            "title": "Rerank",
+            "type": "boolean"
+          },
+          "semantic_weight": {
+            "title": "Semantic Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "config",
+          "label",
+          "mode",
+          "rerank",
+          "semantic_weight",
+          "available",
+          "recall_at_10",
+          "ndcg_at_10",
+          "mrr",
+          "rejected_in_top_10",
+          "latency_ms_median"
+        ],
+        "title": "EvalConfigResult",
+        "type": "object"
+      },
+      "EvalRun": {
+        "properties": {
+          "best_config": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Best Config"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_config": {
+            "title": "Current Config",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "judgments": {
+            "title": "Judgments",
+            "type": "integer"
+          },
+          "queries": {
+            "title": "Queries",
+            "type": "integer"
+          },
+          "recommendation": {
+            "default": "",
+            "title": "Recommendation",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/EvalConfigResult"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "suggested_settings": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Suggested Settings"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "queries",
+          "judgments",
+          "results",
+          "current_config"
+        ],
+        "title": "EvalRun",
+        "type": "object"
+      },
+      "EvalStatus": {
+        "properties": {
+          "judgments": {
+            "title": "Judgments",
+            "type": "integer"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalRun"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "min_queries_for_recommendation": {
+            "title": "Min Queries For Recommendation",
+            "type": "integer"
+          },
+          "queries": {
+            "title": "Queries",
+            "type": "integer"
+          },
+          "running": {
+            "title": "Running",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "queries",
+          "judgments",
+          "min_queries_for_recommendation",
+          "running"
+        ],
+        "title": "EvalStatus",
+        "type": "object"
+      },
       "Evidence": {
         "description": "One citable piece of indexed material. ``ref`` is what answers cite, e.g. [E3].",
         "properties": {
@@ -2137,6 +2310,65 @@
           }
         },
         "title": "Facets",
+        "type": "object"
+      },
+      "FeedbackQuery": {
+        "properties": {
+          "judgments": {
+            "items": {
+              "$ref": "#/components/schemas/FeedbackRepo"
+            },
+            "title": "Judgments",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "judgments",
+          "updated_at"
+        ],
+        "title": "FeedbackQuery",
+        "type": "object"
+      },
+      "FeedbackRepo": {
+        "properties": {
+          "feedback_id": {
+            "title": "Feedback Id",
+            "type": "integer"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "repo_id": {
+            "title": "Repo Id",
+            "type": "integer"
+          },
+          "verdict": {
+            "enum": [
+              "relevant",
+              "not_relevant",
+              "missing"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feedback_id",
+          "repo_id",
+          "full_name",
+          "verdict"
+        ],
+        "title": "FeedbackRepo",
         "type": "object"
       },
       "GenerationRequest": {
@@ -2938,7 +3170,8 @@
               "rebuild_vector_index",
               "cleanup",
               "backup",
-              "refresh_metadata"
+              "refresh_metadata",
+              "evaluate_search"
             ],
             "title": "Type",
             "type": "string"
@@ -3198,6 +3431,57 @@
           "snippet"
         ],
         "title": "Match",
+        "type": "object"
+      },
+      "McpInfo": {
+        "description": "How to connect an MCP client (Claude Code, Claude Desktop, other agents) to this library.",
+        "properties": {
+          "claude_code_http": {
+            "title": "Claude Code Http",
+            "type": "string"
+          },
+          "claude_code_stdio": {
+            "title": "Claude Code Stdio",
+            "type": "string"
+          },
+          "desktop_config": {
+            "additionalProperties": true,
+            "title": "Desktop Config",
+            "type": "object"
+          },
+          "http_url": {
+            "title": "Http Url",
+            "type": "string"
+          },
+          "requires_token": {
+            "title": "Requires Token",
+            "type": "boolean"
+          },
+          "stdio_command": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Stdio Command",
+            "type": "array"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/ToolInfo"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "http_url",
+          "stdio_command",
+          "claude_code_http",
+          "claude_code_stdio",
+          "desktop_config",
+          "tools",
+          "requires_token"
+        ],
+        "title": "McpInfo",
         "type": "object"
       },
       "ModelInfo": {
@@ -5844,7 +6128,7 @@
             "type": "string"
           },
           "top_n": {
-            "default": 30,
+            "default": 20,
             "maximum": 200,
             "minimum": 5,
             "title": "Top N",
@@ -6440,6 +6724,119 @@
         "title": "SchedulePatch",
         "type": "object"
       },
+      "SearchFeedback": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rank"
+          },
+          "repo_full_name": {
+            "title": "Repo Full Name",
+            "type": "string"
+          },
+          "repo_id": {
+            "title": "Repo Id",
+            "type": "integer"
+          },
+          "verdict": {
+            "enum": [
+              "relevant",
+              "not_relevant",
+              "missing"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "query",
+          "repo_id",
+          "repo_full_name",
+          "verdict",
+          "mode",
+          "created_at"
+        ],
+        "title": "SearchFeedback",
+        "type": "object"
+      },
+      "SearchFeedbackCreate": {
+        "properties": {
+          "mode": {
+            "default": "hybrid",
+            "enum": [
+              "keyword",
+              "semantic",
+              "hybrid"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rank"
+          },
+          "repo_id": {
+            "title": "Repo Id",
+            "type": "integer"
+          },
+          "verdict": {
+            "enum": [
+              "relevant",
+              "not_relevant",
+              "missing"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "repo_id",
+          "verdict"
+        ],
+        "title": "SearchFeedbackCreate",
+        "type": "object"
+      },
       "SearchHistoryEntry": {
         "properties": {
           "created_at": {
@@ -6762,7 +7159,7 @@
             "type": "boolean"
           },
           "semantic_weight": {
-            "default": 1.0,
+            "default": 1.5,
             "maximum": 5,
             "minimum": 0,
             "title": "Semantic Weight",
@@ -7381,6 +7778,76 @@
           "corrected"
         ],
         "title": "TermCorrection",
+        "type": "object"
+      },
+      "ToolCall": {
+        "properties": {
+          "arguments": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Arguments",
+            "type": "object"
+          }
+        },
+        "title": "ToolCall",
+        "type": "object"
+      },
+      "ToolCallResult": {
+        "properties": {
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "repo_ids": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Repo Ids",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "summary"
+        ],
+        "title": "ToolCallResult",
+        "type": "object"
+      },
+      "ToolInfo": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "input_schema": {
+            "additionalProperties": true,
+            "title": "Input Schema",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "input_schema"
+        ],
+        "title": "ToolInfo",
         "type": "object"
       },
       "TraceStep": {

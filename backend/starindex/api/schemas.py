@@ -799,7 +799,7 @@ class JobPage(BaseModel):
 class JobEnqueue(BaseModel):
     type: Literal[
         "sync_full", "sync_incremental", "embed_pending", "classify_repos", "rebuild_search_index",
-        "rebuild_vector_index", "cleanup", "backup", "refresh_metadata",
+        "rebuild_vector_index", "cleanup", "backup", "refresh_metadata", "evaluate_search",
     ]
     payload: dict[str, Any] = {}
 
@@ -1064,6 +1064,104 @@ class BackupInfo(BaseModel):
 class RestoreRequest(BaseModel):
     name: str
     confirm: bool = False
+
+
+# ----------------------------------------------------------------------------- relevance feedback, evaluation, tools
+
+
+class SearchFeedbackCreate(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
+    repo_id: int
+    verdict: Literal["relevant", "not_relevant", "missing"]   # missing = should have matched this query
+    mode: SearchMode = "hybrid"
+    rank: int | None = Field(None, ge=1)
+
+
+class SearchFeedback(BaseModel):
+    id: int
+    query: str
+    repo_id: int
+    repo_full_name: str
+    verdict: Literal["relevant", "not_relevant", "missing"]
+    mode: str
+    rank: int | None = None
+    created_at: str
+
+
+class FeedbackRepo(BaseModel):
+    feedback_id: int
+    repo_id: int
+    full_name: str
+    verdict: Literal["relevant", "not_relevant", "missing"]
+
+
+class FeedbackQuery(BaseModel):
+    query: str
+    judgments: list[FeedbackRepo]
+    updated_at: str
+
+
+class EvalConfigResult(BaseModel):
+    config: str
+    label: str
+    mode: str
+    rerank: bool
+    semantic_weight: float
+    available: bool                       # False when the mode could not run (e.g. no semantic index)
+    recall_at_10: float
+    ndcg_at_10: float
+    mrr: float
+    rejected_in_top_10: float             # average number of thumbs-down results in the first ten
+    latency_ms_median: float
+
+
+class EvalRun(BaseModel):
+    id: int
+    created_at: str
+    queries: int
+    judgments: int
+    results: list[EvalConfigResult]
+    current_config: str
+    best_config: str | None = None
+    recommendation: str = ""
+    suggested_settings: dict[str, Any] | None = None   # applied only through POST /eval/apply
+
+
+class EvalStatus(BaseModel):
+    queries: int                          # judged queries with at least one relevant repository
+    judgments: int
+    min_queries_for_recommendation: int
+    running: bool
+    latest: EvalRun | None = None
+
+
+class ToolInfo(BaseModel):
+    name: str
+    description: str
+    input_schema: dict[str, Any]
+
+
+class ToolCall(BaseModel):
+    arguments: dict[str, Any] = {}
+
+
+class ToolCallResult(BaseModel):
+    ok: bool
+    summary: str
+    evidence: list[Evidence] = []
+    repo_ids: list[int] = []
+
+
+class McpInfo(BaseModel):
+    """How to connect an MCP client (Claude Code, Claude Desktop, other agents) to this library."""
+
+    http_url: str
+    stdio_command: list[str]
+    claude_code_http: str
+    claude_code_stdio: str
+    desktop_config: dict[str, Any]
+    tools: list[ToolInfo]
+    requires_token: bool
 
 
 __all__ = [name for name in dir() if not name.startswith("_")] + ["AppSettings"]
