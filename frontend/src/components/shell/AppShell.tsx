@@ -85,7 +85,7 @@ function SyncIndicator() {
     text = `Syncing ${formatNumber(s.current_run.repos_seen)}${total ? ` / ${formatNumber(total)}` : ""}`;
   } else if (active) {
     const left = s.index.pending + s.index.queued + s.index.indexing;
-    text = left > 0 ? `Indexing · ${formatNumber(left)} left` : `${formatNumber(s.queue.queued + s.queue.running)} jobs running`;
+    text = left > 0 ? `Indexing · ${formatNumber(left)} left` : `${formatNumber(s.queue.queued + s.queue.running)} job${s.queue.queued + s.queue.running === 1 ? "" : "s"} running`;
   } else if (!s.github.configured) {
     text = "GitHub not connected";
   } else {

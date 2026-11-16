@@ -131,7 +131,8 @@ def run_personal_eval(ctx: AppContext, job=None) -> dict[str, Any]:
 
     usable = [r for r in results if r["available"]]
     now = next((r for r in results if r["config"] == current_key), None)
-    best = max(usable, key=lambda r: (r["ndcg_at_10"], r["mrr"], -r["latency_ms_median"])) if usable else None
+    # Ties go to the configuration already in use, then to the faster one.
+    best = max(usable, key=lambda r: (r["ndcg_at_10"], r["mrr"], r["config"] == current_key, -r["latency_ms_median"])) if usable else None
     recommendation, suggested = "", None
     n = len(judgments)
     if n == 0:
