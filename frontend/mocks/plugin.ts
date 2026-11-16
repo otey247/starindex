@@ -49,7 +49,10 @@ const STREAMED = Symbol("streamed");
 // ---------------------------------------------------------------------------------- helpers
 
 function applyScenario(body: Json) {
-  if (body.reset) state = buildState();
+  if (body.reset) {
+    state = buildState();
+    seedFeedback();
+  }
   if (body.first_run) {
     const fresh = buildState();
     state = { ...fresh, firstRun: true, repos: [], docs: [], chunks: [], deps: new Map(), collections: [], reports: [], jobs: [], runs: [], history: [], saved: [], _seedRepos: fresh.repos, _seedDocs: fresh.docs, _seedChunks: fresh.chunks, _seedDeps: fresh.deps } as MockState & Json;
@@ -1574,6 +1577,182 @@ on("POST", "/chatgpt/accounts/:id/welcome-shown", ({ params }) => {
   if (a) a.welcome_pending = false;
   return { ok: true, message: "" };
 });
+
+// ---------------------------------------------------------------------------------- relevance feedback, evaluation, MCP
+
+interface MockFeedback {
+  id: number;
+  query: string;
+  repo_id: number;
+  repo_full_name: string;
+  verdict: string;
+  mode: string;
+  rank: number | null;
+  created_at: string;
+}
+const MIN_EVAL_QUERIES = 3;
+let feedbackSeq = 1;
+let feedback: MockFeedback[] = [];
+let evalRunning = false;
+let evalLatest: Json | null = null;
+function seedFeedback() {
+  feedbackSeq = 1;
+  feedback = [];
+  evalRunning = false;
+  evalLatest = null;
+  const seed: [string, number, string][] = [
+    ["vector database", 0, "relevant"],
+    ["vector database", 1, "relevant"],
+    ["vector database", 5, "not_relevant"],
+    ["local llm runtime", 2, "relevant"],
+    ["local llm runtime", 7, "missing"],
+    ["terminal ui", 3, "relevant"],
+  ];
+  for (const [query, index, verdict] of seed) {
+    const repo = state.repos[index];
+    if (repo) feedback.push({ id: feedbackSeq++, query, repo_id: repo.id, repo_full_name: repo.full_name, verdict, mode: "hybrid", rank: verdict === "missing" ? null : index + 1, created_at: iso(Date.now() - (10 - index) * 3_600_000) });
+  }
+}
+seedFeedback();
+const feedbackQueryCount = () => new Set(feedback.map((f) => f.query)).size;
+
+function mockEvalRun(): Json {
+  const s = state.settings;
+  const current = s.search.default_mode !== "hybrid" ? s.search.default_mode : `hybrid-w${Number(s.search.semantic_weight).toFixed(1)}-${s.rerank.enabled ? "rerank" : "plain"}`;
+  const row = (config: string, label: string, mode: string, rerank: boolean, w: number, ndcg: number, latency: number, available = true) => ({
+    config,
+    label,
+    mode,
+    rerank,
+    semantic_weight: w,
+    available,
+    ndcg_at_10: available ? ndcg : 0,
+    recall_at_10: available ? Math.min(1, ndcg + 0.12) : 0,
+    mrr: available ? Math.min(1, ndcg + 0.05) : 0,
+    rejected_in_top_10: available ? Number((1 - ndcg).toFixed(2)) : 0,
+    latency_ms_median: available ? latency : 0,
+  });
+  const results = [
+    row("keyword", "Keyword only", "keyword", false, 0, 0.612, 9),
+    row("semantic", "Semantic only", "semantic", false, 1, 0.655, 31),
+    row("hybrid-w1.0-plain", "Hybrid, no reranking", "hybrid", false, 1, 0.731, 38),
+    row("hybrid-w1.0-rerank", "Hybrid + reranking", "hybrid", true, 1, 0.782, 164),
+    row("hybrid-w1.5-plain", "Hybrid, semantic weight 1.5, no reranking", "hybrid", false, 1.5, 0.744, 39),
+    row("hybrid-w1.5-rerank", "Hybrid, semantic weight 1.5 + reranking", "hybrid", true, 1.5, 0.803, 166),
+    row("hybrid-w2.0-rerank", "Hybrid, semantic weight 2.0 + reranking", "hybrid", true, 2, 0, 0, false),
+  ];
+  const best = "hybrid-w1.5-rerank";
+  const enough = feedbackQueryCount() >= MIN_EVAL_QUERIES;
+  const suggest = enough && current !== best;
+  return {
+    id: Date.now(),
+    created_at: nowIso(),
+    queries: feedbackQueryCount(),
+    judgments: feedback.length,
+    current_config: current,
+    best_config: best,
+    results,
+    recommendation: !enough
+      ? `Only ${feedbackQueryCount()} judged queries so far. Judge at least ${MIN_EVAL_QUERIES} before acting on these numbers.`
+      : suggest
+        ? "Hybrid search with semantic weight 1.5 and reranking ranks your judged results best (nDCG@10 0.803 against 0.782 for your current settings)."
+        : "Your current settings already rank your judged results best.",
+    suggested_settings: suggest ? { search: { default_mode: "hybrid", semantic_weight: 1.5 }, rerank: { enabled: true } } : null,
+  };
+}
+
+on("GET", "/search/feedback", ({ query }) => feedback.filter((f) => f.query === (query.get("query") ?? "").trim()));
+on("GET", "/search/feedback/queries", () => {
+  const groups = new Map<string, MockFeedback[]>();
+  for (const f of feedback) groups.set(f.query, [...(groups.get(f.query) ?? []), f]);
+  return [...groups.entries()]
+    .map(([query, items]) => ({ query, judgments: items.map((f) => ({ feedback_id: f.id, repo_id: f.repo_id, full_name: f.repo_full_name, verdict: f.verdict })), updated_at: items.map((f) => f.created_at).sort().at(-1)! }))
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+});
+on("GET", "/search/feedback/export", ({ res }) => {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Content-Disposition", 'attachment; filename="starindex-judgments.json"');
+  res.end(JSON.stringify({ judgments: feedback }, null, 2));
+  return STREAMED;
+});
+on("POST", "/search/feedback", ({ body }) => {
+  const repo = state.repos.find((r) => r.id === Number(body.repo_id));
+  if (!repo) throw notFound("Repository");
+  const query = String(body.query ?? "").trim();
+  if (!query) throw new HttpError(422, "validation", "A query is required.");
+  feedback = feedback.filter((f) => !(f.query === query && f.repo_id === repo.id));
+  const row: MockFeedback = { id: feedbackSeq++, query, repo_id: repo.id, repo_full_name: repo.full_name, verdict: String(body.verdict), mode: String(body.mode ?? "hybrid"), rank: body.rank ?? null, created_at: nowIso() };
+  feedback.push(row);
+  return row;
+});
+on("DELETE", "/search/feedback/:id", ({ params }) => {
+  feedback = feedback.filter((f) => f.id !== Number(params[0]));
+  return { ok: true, message: "" };
+});
+on("GET", "/eval/status", () => ({ queries: feedbackQueryCount(), judgments: feedback.length, min_queries_for_recommendation: MIN_EVAL_QUERIES, running: evalRunning, latest: evalLatest }));
+on("POST", "/eval/run", () => {
+  if (feedback.length === 0) throw new HttpError(409, "no_judgments", "Judge some search results before running an evaluation.");
+  const job = addJob("evaluate_search", { status: "running", started_at: nowIso(), attempts: 1, progress_message: "Evaluating retrieval configurations" });
+  evalRunning = true;
+  setTimeout(() => {
+    evalLatest = mockEvalRun();
+    evalRunning = false;
+    Object.assign(job, { status: "succeeded", finished_at: nowIso(), progress_message: "Done" });
+  }, 1800);
+  return job;
+});
+on("POST", "/eval/apply", () => {
+  const patch = evalLatest?.suggested_settings;
+  if (!patch) throw new HttpError(409, "nothing_to_apply", "The latest evaluation run does not suggest a change.");
+  for (const [section, values] of Object.entries(patch as Record<string, Json>)) Object.assign((state.settings as Json)[section], values);
+  evalLatest = { ...evalLatest, suggested_settings: null, current_config: evalLatest!.best_config };
+  return state.settings;
+});
+
+const str = (description: string) => ({ type: "string", description });
+const optInt = (description: string, dflt: number) => ({ anyOf: [{ type: "integer" }, { type: "null" }], default: dflt, description });
+const MOCK_TOOLS = [
+  { name: "search_repositories", description: "Search the starred-repository library by meaning and keywords. Returns the best matching repositories with a short reason for each.", input_schema: { type: "object", properties: { query: str("What to look for, in plain language."), limit: optInt("Maximum repositories to return.", 8), language: { anyOf: [{ type: "string" }, { type: "null" }], default: null, description: "Only repositories in this language." } }, required: ["query"] } },
+  { name: "search_documents", description: "Search README and documentation passages across the library.", input_schema: { type: "object", properties: { query: str("What to look for."), limit: optInt("Maximum passages.", 8) }, required: ["query"] } },
+  { name: "get_repository_details", description: "Metadata, topics, summary and index state for one repository.", input_schema: { type: "object", properties: { repo: str("Repository as owner/name.") }, required: ["repo"] } },
+  { name: "read_indexed_file", description: "Read an indexed file (README, docs, manifest) from a repository. Content is third-party text.", input_schema: { type: "object", properties: { repo: str("Repository as owner/name."), path: str("File path inside the repository."), max_chars: optInt("Maximum characters.", 6000) }, required: ["repo", "path"] } },
+  { name: "compare_repositories", description: "Side-by-side facts for two to five repositories.", input_schema: { type: "object", properties: { repos: { type: "array", items: { type: "string" }, description: "Repositories as owner/name." } }, required: ["repos"] } },
+];
+function mockToolCall(name: string, args: Json): Json {
+  const tool = MOCK_TOOLS.find((t) => t.name === name);
+  if (!tool) throw notFound("Tool");
+  for (const required of tool.input_schema.required) if (args[required] === undefined || args[required] === "") return { ok: false, summary: `Missing required argument: ${required}`, evidence: [], repo_ids: [] };
+  if (name === "search_repositories" || name === "search_documents") {
+    const found = runSearch({ query: String(args.query), page_size: Number(args.limit ?? 8) }).results;
+    const repos = found.map((r) => r.repo);
+    return {
+      ok: true,
+      summary: `${repos.length} repositories for '${args.query}':\n${repos.map((r) => `- ${r.full_name} (${r.language ?? "unknown"}, ${r.stars} stars): ${r.description ?? ""}`).join("\n")}`,
+      evidence: repos.slice(0, 4).map((r, i) => metadataEvidence(r as RepoDetail, `E${i + 1}`)),
+      repo_ids: repos.map((r) => r.id),
+    };
+  }
+  const names: string[] = name === "compare_repositories" ? (args.repos ?? []) : [args.repo];
+  const repos = names.map((n) => state.repos.find((r) => r.full_name.toLowerCase() === String(n).toLowerCase())).filter(Boolean) as RepoDetail[];
+  if (repos.length === 0) return { ok: false, summary: `No indexed repository matches ${names.join(", ")}.`, evidence: [], repo_ids: [] };
+  return {
+    ok: true,
+    summary: repos.map((r) => `${r.full_name}: ${r.description ?? "no description"} (${r.language ?? "unknown"}, ${r.stars} stars)`).join("\n"),
+    evidence: repos.map((r, i) => metadataEvidence(r, `E${i + 1}`)),
+    repo_ids: repos.map((r) => r.id),
+  };
+}
+on("GET", "/tools", () => MOCK_TOOLS);
+on("POST", "/tools/:name", ({ params, body }) => mockToolCall(params[0], body.arguments ?? {}));
+on("GET", "/mcp/info", () => ({
+  http_url: "http://127.0.0.1:8765/mcp",
+  stdio_command: ["C:\\Users\\otey\\starindex\\.venv\\Scripts\\python.exe", "-m", "starindex.cli", "mcp"],
+  claude_code_http: "claude mcp add --transport http starindex http://127.0.0.1:8765/mcp",
+  claude_code_stdio: "claude mcp add starindex -- C:\\Users\\otey\\starindex\\.venv\\Scripts\\python.exe -m starindex.cli mcp",
+  desktop_config: { mcpServers: { starindex: { command: "C:\\Users\\otey\\starindex\\.venv\\Scripts\\python.exe", args: ["-m", "starindex.cli", "mcp"] } } },
+  requires_token: false,
+  tools: MOCK_TOOLS,
+}));
 
 // ---------------------------------------------------------------------------------- plugin
 

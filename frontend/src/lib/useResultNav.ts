@@ -5,7 +5,7 @@ import { useCompareTray } from "@/state/stores";
 import { useHotkeys } from "./hotkeys";
 
 /** j / k / Enter / o / x navigation over a list of repositories. */
-export function useResultNav(repos: RepoSummary[], enabled = true) {
+export function useResultNav(repos: RepoSummary[], enabled = true, onVerdict?: (repo: RepoSummary, verdict: "relevant" | "not_relevant") => void) {
   const navigate = useNavigate();
   const [focusedId, setFocusedId] = useState<number | null>(null);
   const toggleTray = useCompareTray((s) => s.toggle);
@@ -37,6 +37,8 @@ export function useResultNav(repos: RepoSummary[], enabled = true) {
       { keys: "enter", handler: () => (focused ? navigate(`/repo/${focused.id}`) : false) },
       { keys: "o", handler: () => (focused ? void window.open(focused.html_url, "_blank", "noopener,noreferrer") : false) },
       { keys: "x", handler: () => (focused ? toggleTray(focused.id, focused.full_name) : false) },
+      { keys: "plus", handler: () => (focused && onVerdict ? onVerdict(focused, "relevant") : false) },
+      { keys: "minus", handler: () => (focused && onVerdict ? onVerdict(focused, "not_relevant") : false) },
       { keys: "escape", handler: () => (focusedId !== null ? setFocusedId(null) : false) },
     ],
     enabled,

@@ -172,6 +172,19 @@ def cmd_mcp(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_verify(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from .config import get_config
+    from .verify import run
+
+    config = get_config()
+    base = args.url or f"http://127.0.0.1:{config.port}"
+    report = Path(args.report) if args.report else config.paths.data_dir / "verification-report.md"
+    return run(base, config.access_token, sync=args.sync, research=args.research, query=args.query,
+               question=args.question, report_path=report, wait_minutes=args.wait_minutes)
+
+
 def cmd_paths(args: argparse.Namespace) -> int:
     from .config import get_config
 
@@ -222,6 +235,16 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("mcp", help="Run as an MCP server over stdio (for Claude Code, Claude Desktop and other agents).")
     p.add_argument("--url", help="Address of the running StarIndex application (default: http://127.0.0.1:<port>).")
     p.set_defaults(fn=cmd_mcp)
+
+    p = sub.add_parser("verify", help="Check a running installation end to end and write a report.")
+    p.add_argument("--url", help="Address of the running application (default: http://127.0.0.1:<port>).")
+    p.add_argument("--sync", action="store_true", help="Start a full synchronisation and wait for the starred list.")
+    p.add_argument("--research", action="store_true", help="Also run a research request with the default local model (slow).")
+    p.add_argument("--query", default="vector database", help="Query used for the search checks.")
+    p.add_argument("--question", default="Which of my starred repositories help with semantic search? Name them and say why.")
+    p.add_argument("--wait-minutes", type=float, default=30, help="How long --sync waits for the starred list.")
+    p.add_argument("--report", help="Where to write the Markdown report (default: the data directory).")
+    p.set_defaults(fn=cmd_verify)
 
     p = sub.add_parser("paths", help="Show where StarIndex keeps its data.")
     p.set_defaults(fn=cmd_paths)

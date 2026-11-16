@@ -14,7 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "@/api/client";
 import { errorMessage } from "@/api/errors";
 import { keys, useCategories, useCollections, useFacets, useSearch, useSettings, useSystemStatus } from "@/api/queries";
@@ -30,6 +30,8 @@ import { formatMs, formatNumber, timeAgo } from "@/lib/format";
 import { OPERATORS } from "@/lib/query";
 import { searchStateFromParams, searchStateToParams, type ResultView, type SearchUrlState } from "@/lib/urlState";
 import { useResultNav } from "@/lib/useResultNav";
+import { RepoPicker } from "@/components/repo/RepoPicker";
+import { useSearchFeedback } from "@/components/search/useSearchFeedback";
 import { toast } from "@/state/stores";
 
 const PAGE_SIZE = 25;
@@ -357,7 +359,14 @@ export default function SearchPage() {
     return [...byRepo.values()];
   }, [data]);
   const repos = useMemo(() => results.map((r) => r.repo), [results]);
-  const nav = useResultNav(repos, shouldSearch);
+  // Relevance feedback applies to free-text repository searches only, never to filter browsing.
+  const feedback = useSearchFeedback(hasQuery && state.scope === "repos" ? state.q : "", data?.mode ?? state.mode);
+  const rankOf = (repoId: number) => {
+    const i = results.findIndex((r) => r.repo.id === repoId);
+    return i === -1 ? null : (state.page - 1) * PAGE_SIZE + i + 1;
+  };
+  const nav = useResultNav(repos, shouldSearch, feedback.enabled ? (repo, verdict) => feedback.mark(repo, verdict, rankOf(repo.id)) : undefined);
+  const [addingMissing, setAddingMissing] = useState(false);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
   const corrections = data?.parsed.corrections ?? [];
@@ -540,6 +549,11 @@ export default function SearchPage() {
                       rank={(state.page - 1) * PAGE_SIZE + i + 1}
                       matches={r.matches}
                       maxMatches={state.scope === "repos" ? 3 : 6}
+                      feedback={
+                        feedback.enabled
+                          ? { verdict: feedback.byRepo.get(r.repo.id)?.verdict ?? null, onMark: (v) => feedback.mark(r.repo, v, (state.page - 1) * PAGE_SIZE + i + 1) }
+                          : undefined
+                      }
                       signals={r.signals}
                       score={r.score}
                       highlights={r.field_highlights}
@@ -573,6 +587,30 @@ export default function SearchPage() {
                   )}
                 </div>
 
+                {feedback.enabled && (
+                  <div className="border-t border-line py-3 text-sm text-fg-3" data-testid="feedback-footer">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <span>Your verdicts on these results tune ranking for your own library.</span>
+                      <button type="button" className="link cursor-pointer" onClick={() => setAddingMissing(true)}>
+                        Missing a repository?
+                      </button>
+                      <Link to="/settings/quality" className="text-fg-3 underline-offset-2 hover:text-fg hover:underline">
+                        Search quality
+                      </Link>
+                    </div>
+                    {feedback.missing.length > 0 && (
+                      <p className="mt-2 flex flex-wrap items-center gap-1.5" data-testid="missing-list">
+                        <span>You said these should match:</span>
+                        {feedback.missing.map((f) => (
+                          <Chip key={f.id} mono onRemove={() => feedback.remove(f.id)}>
+                            {f.repo_full_name}
+                          </Chip>
+                        ))}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {state.scope === "repos" && hasQuery && (
                   <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-line pt-4 text-sm text-fg-3">
                     <span>Want an answer rather than a list?</span>
@@ -601,6 +639,30 @@ export default function SearchPage() {
       <Drawer open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters" width={340}>
         <div className="p-4">{sidebar}</div>
       </Drawer>
+      <Dialog
+        open={addingMissing}
+        onClose={() => setAddingMissing(false)}
+        size="sm"
+        title="Which repository is missing?"
+        description={
+          <>
+            Pick a starred repository that should have matched <span className="font-medium text-fg-2">“{state.q}”</span>. It is recorded as a judgment and used when you evaluate search quality.
+          </>
+        }
+      >
+        <div className="min-h-[230px]">
+          <RepoPicker
+            autoFocus
+            placeholder="Search your library"
+            excludeIds={feedback.missing.map((f) => f.repo_id)}
+            onPick={(repo) => {
+              if (feedback.byRepo.get(repo.id)?.verdict !== "missing") feedback.mark(repo, "missing", rankOf(repo.id));
+              setAddingMissing(false);
+              toast.success(`Recorded ${repo.full_name} as missing for this query.`);
+            }}
+          />
+        </div>
+      </Dialog>
       {request && <SaveSearchDialog open={saving} onClose={() => setSaving(false)} request={request} />}
       <span className="sr-only" aria-live="polite">
         {data ? `${data.total} results` : ""}

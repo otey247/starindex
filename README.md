@@ -41,6 +41,8 @@ Linux/macOS: `scripts/start.sh`.
 | **Library** | Categories (automatic, editable), collections (manual and smart), tags, notes, favorites, duplicates and forks, related repositories, recently starred/rediscovered. |
 | **Sync** | Complete paginated import with star timestamps, ETags, rate-limit handling, resume after interruption, renames/transfers/deletions/unstars handled by immutable repository id. |
 | **Indexing levels** | Metadata · Documentation (default) · Deep (source code), per repository or in batches. Nothing from a repository is ever executed. |
+| **Your own evaluation** | Mark results relevant / not relevant or name a repository that should have matched; StarIndex scores keyword, semantic and hybrid configurations on your judgments and suggests a change only when there is enough data — applied only when you confirm. |
+| **MCP server** | The read-only research tools are available to Claude Code, Claude Desktop and other agents over stdio or HTTP ([docs/MCP.md](docs/MCP.md)). |
 | **Models** | Ollama, LM Studio, vLLM and any OpenAI-compatible server locally; OpenAI, Anthropic, Gemini, Azure OpenAI as explicit opt-in; ChatGPT plan via OpenAI's Sign in with ChatGPT for open-source apps. Routing per task type. |
 
 ## Commands
@@ -50,6 +52,8 @@ starindex serve [--port 8765] [--open]     run the application (API + worker + w
 starindex sync [--full]                    synchronise and index without the server
 starindex search "query" [--mode hybrid]   search from the terminal
 starindex doctor                           check dependencies and configuration
+starindex verify [--sync] [--research]      check a running installation end to end, write a report
+starindex mcp                              MCP server over stdio for other agents
 starindex backup create|list|restore       database backups
 starindex export [--format json|csv]       export the library with your annotations
 starindex paths                            show where data is stored
@@ -79,6 +83,7 @@ python eval/build_corpus.py && python eval/run_eval.py   # search quality evalua
 - [docs/EVALUATION.md](docs/EVALUATION.md) — search evaluation method and measured results
 - [docs/PROVIDERS.md](docs/PROVIDERS.md) — model providers, capability matrix, adding a provider
 - [docs/CHATGPT_PLAN.md](docs/CHATGPT_PLAN.md) — Sign in with ChatGPT (plan usage) integration and its limits
+- [docs/MCP.md](docs/MCP.md) — using the library from Claude Code and other agents
 - [docs/SECURITY.md](docs/SECURITY.md) — threat model, untrusted content, secrets, network exposure
 - [docs/EXTENDING.md](docs/EXTENDING.md) — adding tools, categories, indexers, embedding backends
 - [docs/API.md](docs/API.md) — HTTP API reference

@@ -29,11 +29,16 @@ no access to the owner's GitHub account).
 | Background jobs: persistence, leases, resume after restart, cancellation, scheduling, backup/restore, cleanup | done | `backend/tests/test_jobs.py`; restart of the running server mid-embedding |
 | HTTP API, security middleware (Host/Origin checks, access token for non-loopback), secret hygiene | done | `backend/tests/test_api.py` |
 | Web interface: all eight sections, repository workspace, onboarding, keyboard navigation, responsive layout | done | Vitest unit/component tests; Playwright suite in `e2e/` against a real backend |
+| Relevance feedback and personal evaluation (judgments from your own searches, configuration grid, explicit apply) | done | `backend/tests/test_extensions.py` |
+| MCP server (stdio and HTTP) over the read-only research tools | done | `test_extensions.py`, including the reference Python SDK client over stdio |
+| `starindex verify` end-to-end check with report | done | run against a local instance here; `scripts/verify.ps1` wrapper **not executed** |
 | Windows launchers (`scripts/*.ps1`, `Start-StarIndex.cmd`), Task Scheduler registration | written | **not executed** (no Windows machine, no PowerShell here) |
 | Docker Compose for optional Qdrant/Ollama | written | **not executed** (no Docker daemon here) |
 | Documentation | done | — |
 
 ## Not verified in the build environment (do these on the target machine)
+
+`scripts\verify.ps1 -Sync` runs items 1–5 below in one go and writes a report.
 
 1. **The owner's real GitHub account.** The build environment could not call `/user/starred` for any
    account, so the import of the real starred list has not run. Everything was exercised against a fake
@@ -53,8 +58,10 @@ no access to the owner's GitHub account).
   (`-Gpu`) or a smaller indexing level speeds up the rest.
 - The embedded vector index scans in-process. It is appropriate for documentation-level indexing of
   thousands of repositories; for very large deep indexes use Qdrant as a server.
-- Small local models (around 1–3 B parameters) follow the citation rules for short answers but not
-  reliably for long research reports; such reports are flagged as uncited. Use a larger model for Research.
+- Small local models follow the citation rules for short answers but not for long research reports. Tested
+  live on CPU with Qwen2.5 1.5B and 3B through llama.cpp: both gave correctly cited Ask answers; both wrote
+  Research reports without valid citations and with some wrong claims, which StarIndex flagged as
+  unverified. Use a substantially larger model for Research (not testable on the CPU-only build machine).
 - Maintenance status is inferred from the last push date only (no issue or release activity).
 - Dependencies are read from manifests in the repository root and up to two directories below it.
 - The reranker and the default embedding model are English-centric.

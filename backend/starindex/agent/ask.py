@@ -108,6 +108,12 @@ def stream_text(resolved: Any, request: GenerationRequest, meter: UsageMeter) ->
     if usage is None or (usage.input_tokens is None and usage.output_tokens is None):
         usage = estimate_usage(request, "".join(parts))
     meter.add(usage)
+    if not "".join(parts).strip():
+        # A "successful" stream with no text is not an answer; report it instead of saving an empty result.
+        raise ProviderError(
+            "invalid_response", "The model returned an empty answer. Try again, or choose a different model.",
+            provider_id=resolved.config.id, provider_kind=resolved.config.kind,
+        )
 
 
 def retrieve_for_question(ctx: AppContext, question: str, evidence: EvidenceSet, *, repo_ids: list[int], filters: RepoFilters | None) -> list[str]:

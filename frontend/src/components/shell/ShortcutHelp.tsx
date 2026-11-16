@@ -20,6 +20,8 @@ const GROUPS: { title: string; rows: [string[], string][] }[] = [
       [["Enter"], "Open the focused repository"],
       [["o"], "Open the focused repository on GitHub"],
       [["x"], "Add the focused repository to the comparison"],
+      [["+"], "Mark the focused result relevant to this query"],
+      [["-"], "Mark the focused result not relevant"],
     ],
   },
   {

@@ -1,17 +1,21 @@
-import { Activity, Clock, Database, HardDrive, Layers, MessageCircle, Search, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Activity, Clock, Gauge, Plug, Database, HardDrive, Layers, MessageCircle, Search, ShieldCheck, type LucideIcon } from "lucide-react";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { GithubMark } from "@/components/ui/GithubMark";
 import { cn } from "@/lib/cn";
 import ChatGPTSettings from "./ChatGPTSettings";
 import { DiagnosticsSettings, GitHubSettings, IndexingSettings, PrivacySettings, ScheduleSettings, SearchSettings, StorageSettings } from "./GeneralSettings";
+import AgentAccessSettings from "./AgentAccessSettings";
 import ModelSettings from "./ModelSettings";
+import QualitySettings from "./QualitySettings";
 
 const SECTIONS: { to: string; label: string; icon: LucideIcon | typeof GithubMark }[] = [
   { to: "github", label: "GitHub access", icon: GithubMark },
   { to: "indexing", label: "Indexing", icon: Layers },
   { to: "search", label: "Search & embeddings", icon: Search },
+  { to: "quality", label: "Search quality", icon: Gauge },
   { to: "models", label: "Model providers", icon: HardDrive },
   { to: "chatgpt", label: "ChatGPT plan", icon: MessageCircle },
+  { to: "agents", label: "Agent access (MCP)", icon: Plug },
   { to: "privacy", label: "Privacy", icon: ShieldCheck },
   { to: "storage", label: "Storage & backups", icon: Database },
   { to: "schedules", label: "Schedules", icon: Clock },
@@ -47,6 +51,8 @@ export default function SettingsPage() {
           <Route path="github" element={<GitHubSettings />} />
           <Route path="indexing" element={<IndexingSettings />} />
           <Route path="search" element={<SearchSettings />} />
+          <Route path="quality" element={<QualitySettings />} />
+          <Route path="agents" element={<AgentAccessSettings />} />
           <Route path="models" element={<ModelSettings />} />
           <Route path="chatgpt" element={<ChatGPTSettings />} />
           <Route path="privacy" element={<PrivacySettings />} />

@@ -1,4 +1,4 @@
-import { ExternalLink, GitCompareArrows, Heart } from "lucide-react";
+import { ExternalLink, GitCompareArrows, Heart, ThumbsDown, ThumbsUp } from "lucide-react";
 import { memo } from "react";
 import type { Match, RepoSummary, ResultSignals } from "@/api/types";
 import { SourceRef, kindIcon } from "@/components/evidence/EvidenceBits";
@@ -62,6 +62,8 @@ export interface RepoRowProps {
   rank?: number;
   matches?: Match[];
   maxMatches?: number;
+  /** Relevance feedback for the current query; omitted when there is no free-text query. */
+  feedback?: { verdict: "relevant" | "not_relevant" | "missing" | null; onMark: (verdict: "relevant" | "not_relevant") => void };
   signals?: ResultSignals;
   score?: number;
   highlights?: Record<string, string>;
@@ -82,6 +84,7 @@ export const RepoRow = memo(function RepoRow({
   rank,
   matches = [],
   maxMatches = 3,
+  feedback,
   signals,
   score,
   highlights,
@@ -102,6 +105,7 @@ export const RepoRow = memo(function RepoRow({
       data-result-row
       data-repo-id={repo.id}
       data-focused={focused || undefined}
+      data-verdict={feedback?.verdict ?? undefined}
       onMouseDown={onFocus}
       className={cn(
         "group relative grid grid-cols-[auto_1fr] gap-x-3 border-b border-line px-3 py-3.5 transition-colors",
@@ -123,7 +127,17 @@ export const RepoRow = memo(function RepoRow({
             <RepoTitle repo={repo} highlight={highlights?.name} />
             {repo.favorite && <Heart className="size-3 shrink-0 fill-fg-2 text-fg-2" aria-label="Favorite" />}
           </div>
-          <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 data-[on=true]:opacity-100" data-on={inTray}>
+          <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 data-[on=true]:opacity-100" data-on={inTray || Boolean(feedback?.verdict && feedback.verdict !== "missing")}>
+            {feedback && (
+              <>
+                <IconButton label="Relevant to this query" size="sm" aria-pressed={feedback.verdict === "relevant"} onClick={() => feedback.onMark("relevant")} data-verdict-button="relevant">
+                  <ThumbsUp className={cn("size-3.5", feedback.verdict === "relevant" && "fill-accent text-accent")} strokeWidth={feedback.verdict === "relevant" ? 2.4 : 1.8} />
+                </IconButton>
+                <IconButton label="Not relevant" size="sm" aria-pressed={feedback.verdict === "not_relevant"} onClick={() => feedback.onMark("not_relevant")} data-verdict-button="not_relevant">
+                  <ThumbsDown className={cn("size-3.5", feedback.verdict === "not_relevant" && "fill-fg text-fg")} strokeWidth={feedback.verdict === "not_relevant" ? 2.4 : 1.8} />
+                </IconButton>
+              </>
+            )}
             <IconButton
               label={inTray ? "Remove from comparison" : "Add to comparison"}
               size="sm"

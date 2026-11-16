@@ -33,6 +33,9 @@ function matches(event: KeyboardEvent, combo: string): boolean {
   if (event.altKey) return false;
   // "?" needs shift on most layouts; only enforce shift when asked explicitly.
   if (wantShift && !event.shiftKey) return false;
+  // "+" is the combo separator, so the plus and minus keys are spelled out.
+  if (key === "plus") return event.key === "+";
+  if (key === "minus") return event.key === "-" || event.key === "_";
   return event.key.toLowerCase() === key;
 }
 

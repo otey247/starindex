@@ -50,6 +50,16 @@ export type Suggestion = S["Suggestion"];
 export type SearchHistoryEntry = S["SearchHistoryEntry"];
 export type SavedSearch = S["SavedSearch"];
 
+export type SearchFeedback = S["SearchFeedback"];
+export type FeedbackQuery = S["FeedbackQuery"];
+export type FeedbackVerdict = "relevant" | "not_relevant" | "missing";
+export type EvalStatus = S["EvalStatus"];
+export type EvalRun = S["EvalRun"];
+export type EvalConfigResult = S["EvalConfigResult"];
+export type McpInfo = S["McpInfo"];
+export type ToolInfo = S["ToolInfo"];
+export type ToolCallResult = S["ToolCallResult"];
+
 export type Evidence = S["Evidence"];
 export type EvidenceDetail = S["EvidenceDetail"];
 export type EvidenceClass = "observed" | "documented" | "inferred" | "unverified";

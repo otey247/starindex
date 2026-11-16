@@ -79,6 +79,20 @@ LM Studio use it automatically; for GPU embeddings install with `-Gpu`, which re
 ONNX Runtime with `onnxruntime-gpu` (it needs the CUDA and cuDNN runtime libraries listed in the ONNX
 Runtime documentation). Embeddings fall back to the CPU when no CUDA provider is available.
 
+## Verify the installation
+
+After connecting GitHub and (optionally) adding a model in the app:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\verify.ps1 -Sync
+```
+
+This starts StarIndex if needed and checks, against your real account and hardware: launch and web
+interface, Credential Manager, the full import of your starred list, indexing and embeddings, search in
+all three modes, every configured model provider, a cited answer from the default local model
+(`-Research` adds a research run), ChatGPT plan status, GPU detection and the MCP endpoints. The result is
+printed and saved as `verification-report.md` in the data directory.
+
 ## Run in the background at sign-in
 
 Scheduled synchronisation, indexing and backups run inside StarIndex, so it only has to be running:

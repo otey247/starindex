@@ -832,6 +832,76 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** EvalConfigResult */
+        EvalConfigResult: {
+            /** Available */
+            available: boolean;
+            /** Config */
+            config: string;
+            /** Label */
+            label: string;
+            /** Latency Ms Median */
+            latency_ms_median: number;
+            /** Mode */
+            mode: string;
+            /** Mrr */
+            mrr: number;
+            /** Ndcg At 10 */
+            ndcg_at_10: number;
+            /** Recall At 10 */
+            recall_at_10: number;
+            /** Rejected In Top 10 */
+            rejected_in_top_10: number;
+            /** Rerank */
+            rerank: boolean;
+            /** Semantic Weight */
+            semantic_weight: number;
+        };
+        /** EvalRun */
+        EvalRun: {
+            /**
+             * Best Config
+             * @default null
+             */
+            best_config: string | null;
+            /** Created At */
+            created_at: string;
+            /** Current Config */
+            current_config: string;
+            /** Id */
+            id: number;
+            /** Judgments */
+            judgments: number;
+            /** Queries */
+            queries: number;
+            /**
+             * Recommendation
+             * @default
+             */
+            recommendation: string;
+            /** Results */
+            results: components["schemas"]["EvalConfigResult"][];
+            /**
+             * Suggested Settings
+             * @default null
+             */
+            suggested_settings: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** EvalStatus */
+        EvalStatus: {
+            /** Judgments */
+            judgments: number;
+            /** @default null */
+            latest: components["schemas"]["EvalRun"] | null;
+            /** Min Queries For Recommendation */
+            min_queries_for_recommendation: number;
+            /** Queries */
+            queries: number;
+            /** Running */
+            running: boolean;
+        };
         /**
          * Evidence
          * @description One citable piece of indexed material. ``ref`` is what answers cite, e.g. [E3].
@@ -1055,6 +1125,29 @@ export interface components {
              * @default []
              */
             topics: components["schemas"]["FacetValue"][];
+        };
+        /** FeedbackQuery */
+        FeedbackQuery: {
+            /** Judgments */
+            judgments: components["schemas"]["FeedbackRepo"][];
+            /** Query */
+            query: string;
+            /** Updated At */
+            updated_at: string;
+        };
+        /** FeedbackRepo */
+        FeedbackRepo: {
+            /** Feedback Id */
+            feedback_id: number;
+            /** Full Name */
+            full_name: string;
+            /** Repo Id */
+            repo_id: number;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "relevant" | "not_relevant" | "missing";
         };
         /**
          * GenerationRequest
@@ -1482,7 +1575,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "sync_full" | "sync_incremental" | "embed_pending" | "classify_repos" | "rebuild_search_index" | "rebuild_vector_index" | "cleanup" | "backup" | "refresh_metadata";
+            type: "sync_full" | "sync_incremental" | "embed_pending" | "classify_repos" | "rebuild_search_index" | "rebuild_vector_index" | "cleanup" | "backup" | "refresh_metadata" | "evaluate_search";
         };
         /** JobPage */
         JobPage: {
@@ -1590,6 +1683,28 @@ export interface components {
             source: "lexical" | "semantic" | "both";
             /** Start Line */
             start_line: number;
+        };
+        /**
+         * McpInfo
+         * @description How to connect an MCP client (Claude Code, Claude Desktop, other agents) to this library.
+         */
+        McpInfo: {
+            /** Claude Code Http */
+            claude_code_http: string;
+            /** Claude Code Stdio */
+            claude_code_stdio: string;
+            /** Desktop Config */
+            desktop_config: {
+                [key: string]: unknown;
+            };
+            /** Http Url */
+            http_url: string;
+            /** Requires Token */
+            requires_token: boolean;
+            /** Stdio Command */
+            stdio_command: string[];
+            /** Tools */
+            tools: components["schemas"]["ToolInfo"][];
         };
         /** ModelInfo */
         ModelInfo: {
@@ -2955,7 +3070,7 @@ export interface components {
             model: string;
             /**
              * Top N
-             * @default 30
+             * @default 20
              */
             top_n: number;
         };
@@ -3194,6 +3309,54 @@ export interface components {
              */
             interval_minutes: number | null;
         };
+        /** SearchFeedback */
+        SearchFeedback: {
+            /** Created At */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Mode */
+            mode: string;
+            /** Query */
+            query: string;
+            /**
+             * Rank
+             * @default null
+             */
+            rank: number | null;
+            /** Repo Full Name */
+            repo_full_name: string;
+            /** Repo Id */
+            repo_id: number;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "relevant" | "not_relevant" | "missing";
+        };
+        /** SearchFeedbackCreate */
+        SearchFeedbackCreate: {
+            /**
+             * Mode
+             * @default hybrid
+             * @enum {string}
+             */
+            mode: "keyword" | "semantic" | "hybrid";
+            /** Query */
+            query: string;
+            /**
+             * Rank
+             * @default null
+             */
+            rank: number | null;
+            /** Repo Id */
+            repo_id: number;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "relevant" | "not_relevant" | "missing";
+        };
         /** SearchHistoryEntry */
         SearchHistoryEntry: {
             /** Created At */
@@ -3371,7 +3534,7 @@ export interface components {
             save_history: boolean;
             /**
              * Semantic Weight
-             * @default 1
+             * @default 1.5
              */
             semantic_weight: number;
             /**
@@ -3660,6 +3823,44 @@ export interface components {
             corrected: string;
             /** Original */
             original: string;
+        };
+        /** ToolCall */
+        ToolCall: {
+            /**
+             * Arguments
+             * @default {}
+             */
+            arguments: {
+                [key: string]: unknown;
+            };
+        };
+        /** ToolCallResult */
+        ToolCallResult: {
+            /**
+             * Evidence
+             * @default []
+             */
+            evidence: components["schemas"]["Evidence"][];
+            /** Ok */
+            ok: boolean;
+            /**
+             * Repo Ids
+             * @default []
+             */
+            repo_ids: number[];
+            /** Summary */
+            summary: string;
+        };
+        /** ToolInfo */
+        ToolInfo: {
+            /** Description */
+            description: string;
+            /** Input Schema */
+            input_schema: {
+                [key: string]: unknown;
+            };
+            /** Name */
+            name: string;
         };
         /**
          * TraceStep

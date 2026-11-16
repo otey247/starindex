@@ -96,6 +96,22 @@ export const api = {
     post<T.SavedSearch>("/saved-searches", { name, request: req }),
   deleteSavedSearch: (id: number) => del<T.Ok>(`/saved-searches/${id}`),
 
+  // ---- relevance feedback and personal evaluation
+  searchFeedback: (query: string) => get<T.SearchFeedback[]>(`/search/feedback${qs({ query })}`),
+  setSearchFeedback: (body: { query: string; repo_id: number; verdict: T.FeedbackVerdict; mode: T.SearchMode; rank?: number | null }) =>
+    post<T.SearchFeedback>("/search/feedback", body),
+  deleteSearchFeedback: (id: number) => del<T.Ok>(`/search/feedback/${id}`),
+  feedbackQueries: () => get<T.FeedbackQuery[]>("/search/feedback/queries"),
+  feedbackExportUrl: () => "/api/search/feedback/export",
+  evalStatus: () => get<T.EvalStatus>("/eval/status"),
+  runEval: () => post<T.Job>("/eval/run"),
+  applyEval: () => post<T.AppSettings>("/eval/apply"),
+
+  // ---- tools for other agents (MCP)
+  mcpInfo: () => get<T.McpInfo>("/mcp/info"),
+  tools: () => get<T.ToolInfo[]>("/tools"),
+  callTool: (name: string, args: Record<string, unknown>) => post<T.ToolCallResult>(`/tools/${encodeURIComponent(name)}`, { arguments: args }),
+
   // ---- ask / research / compare / reports
   streamAsk: (body: T.AskRequestInput, opts: StreamOptions) => postStream("/ask", body, opts),
   streamResearch: (body: T.ResearchRequestInput, opts: StreamOptions) => postStream("/research", body, opts),

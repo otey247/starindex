@@ -270,3 +270,11 @@ def test_unclassified_license_is_not_reported_as_missing():
     assert github_to_row(repo)["license_spdx"] is None
     notes = " ".join(license_notes([("a/b", "Other"), ("c/d", None)]))
     assert "could not classify" in notes and "c/d has no detected license" in notes and "a/b has no detected license" not in notes
+
+
+def test_empty_model_output_is_an_error_not_an_answer(llm, monkeypatch):
+    monkeypatch.setattr(llm.fake_llm, "_text", lambda body: "")
+    ev = events(run_ask(llm, AskRequest(question="vector search")))
+    assert "done" not in ev and ev["error"][0]["error"]["kind"] == "invalid_response"
+    assert "empty answer" in ev["error"][0]["error"]["message"]
+    assert llm.db.one("SELECT status FROM reports ORDER BY id DESC LIMIT 1")["status"] == "failed"
