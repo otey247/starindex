@@ -1187,9 +1187,9 @@ export interface components {
             temperature: number | null;
             /**
              * Timeout S
-             * @default 180
+             * @default null
              */
-            timeout_s: number;
+            timeout_s: number | null;
         };
         /** GenerationResult */
         GenerationResult: {

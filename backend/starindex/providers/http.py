@@ -118,8 +118,8 @@ def make_client(
     )
 
 
-def request_timeout(read_s: float) -> httpx.Timeout:
-    return httpx.Timeout(connect=CONNECT_TIMEOUT_S, read=read_s, write=30.0, pool=CONNECT_TIMEOUT_S)
+def request_timeout(read_s: float | None) -> httpx.Timeout:
+    return httpx.Timeout(connect=CONNECT_TIMEOUT_S, read=read_s or DEFAULT_READ_TIMEOUT_S, write=30.0, pool=CONNECT_TIMEOUT_S)
 
 
 # ---------------------------------------------------------------------------- stream parsing

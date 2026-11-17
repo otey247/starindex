@@ -2440,9 +2440,16 @@
             "title": "Temperature"
           },
           "timeout_s": {
-            "default": 180.0,
-            "title": "Timeout S",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Timeout S"
           }
         },
         "required": [

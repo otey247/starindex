@@ -59,6 +59,17 @@ def test_structured_output_passes_schema_as_format():
     assert parsed == {"answer": "yes"} and rec.json()["format"] == SCHEMA
 
 
+def test_generation_inherits_provider_timeout_and_allows_request_override():
+    p, rec = provider(lambda req: httpx.Response(200, content=ndjson(DONE)), timeout_s=900)
+    try:
+        p.generate(request())
+        assert rec.requests[-1].extensions["timeout"]["read"] == 900
+        p.generate(request(timeout_s=30))
+        assert rec.requests[-1].extensions["timeout"]["read"] == 30
+    finally:
+        p.close()
+
+
 def test_missing_model_gives_pull_hint():
     p, _ = provider(lambda req: httpx.Response(404, json={"error": "model 'qwen3:8b' not found"}))
     with pytest.raises(ProviderError) as info:

@@ -81,7 +81,7 @@ def create_app(ctx: AppContext | None = None, *, start_worker: bool | None = Non
             yield
         finally:
             if worker is not None:
-                worker.stop(timeout=5)
+                worker.stop()
             for name in ("router", "chatgpt"):
                 svc = context.__dict__.get(name)
                 if svc is not None:
