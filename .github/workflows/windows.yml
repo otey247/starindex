@@ -17,7 +17,7 @@ jobs:
       matrix:
         shell: [powershell, pwsh]
     env:
-      STARINDEX_DATA_DIR: ${{ runner.temp }}\StarIndex
+      STARINDEX_SMOKE_SHELL: ${{ matrix.shell }}
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - uses: actions/checkout@v4
@@ -30,15 +30,17 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Run the Windows installer
-        shell: ${{ matrix.shell }}
+        shell: pwsh
         run: |
-          & .\scripts\install.ps1
+          $env:STARINDEX_DATA_DIR = Join-Path $env:RUNNER_TEMP "StarIndex"
+          "STARINDEX_DATA_DIR=$env:STARINDEX_DATA_DIR" >> $env:GITHUB_ENV
+          & $env:STARINDEX_SMOKE_SHELL -NoProfile -ExecutionPolicy Bypass -File scripts\install.ps1
           if ($LASTEXITCODE -ne 0) { throw "Installer exited with $LASTEXITCODE" }
       - name: Launch, verify HTTP and worker, then stop
-        shell: ${{ matrix.shell }}
+        shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $shellExe = (Get-Process -Id $PID).Path
+          $shellExe = (Get-Command $env:STARINDEX_SMOKE_SHELL).Source
           $stdout = Join-Path $env:RUNNER_TEMP "starindex-start.stdout.log"
           $stderr = Join-Path $env:RUNNER_TEMP "starindex-start.stderr.log"
           $launcher = Start-Process -FilePath $shellExe -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts\start.ps1", "-NoBrowser", "-Port", "18765") -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
