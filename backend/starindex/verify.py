@@ -61,7 +61,10 @@ class Verifier:
                 if line.startswith("event:"):
                     name = line[6:].strip()
                 elif line.startswith("data:"):
-                    events.append((name, json.loads(line[5:])))
+                    data = json.loads(line[5:])
+                    events.append((name, data))
+                    if name in ("status", "step"):
+                        print(f"  {data.get('message') or data.get('title') or name}", flush=True)
         return events
 
     # -- checks -----------------------------------------------------------------------------
@@ -236,7 +239,10 @@ class Verifier:
             detail += f", {report['data']['limits']['tool_calls_used']} tool calls"
         if report["warnings"]:
             detail += "; warnings: " + " | ".join(report["warnings"])
-        self.add(area, f"{area} with {label}", PASS if ok else FAIL, detail)
+        self.add(area, f"{area} citation integrity with {label}", PASS if ok else FAIL, detail)
+        if ok:
+            self.add(area, "Factual support review", MANUAL,
+                     "Citation identifiers resolve, but that does not establish that claims, numbers or comparisons agree with the evidence. Review the stored report and its sources.")
 
     def mcp(self) -> None:
         def rpc(method: str, params: dict[str, Any] | None = None, msg_id: int = 1) -> dict[str, Any]:

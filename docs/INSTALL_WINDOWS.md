@@ -99,6 +99,8 @@ verification and leaves the background work running. Exit codes are **0** for al
 **1** for a failure, and **2** for incomplete verification (skipped checks or manual steps).
 GPU-provider detection does not prove GPU embedding execution, and a stored ChatGPT sign-in does
 not prove live inference; the report calls out those outstanding checks explicitly.
+Resolving citation IDs also does not verify the factual claims attached to them; review the stored
+Ask/Research report against its evidence. See [the live verification record](VERIFICATION_2026-11-17.md).
 
 ## Run in the background at sign-in
 
@@ -189,14 +191,17 @@ then press *Rebuild vector index* on the Sync page. This needs Docker Desktop wi
 
 ## Verification status of this document
 
-The PowerShell scripts were written for Windows PowerShell 5.1 and PowerShell 7 but were authored on
-Linux and have not yet been executed on a Windows machine. The application itself (the Python package,
-`starindex serve`, the web interface) was run and tested on Linux; its Windows-specific paths
-(Credential Manager through `keyring`, `%LOCALAPPDATA%` through `platformdirs`) use the standard
-libraries for that purpose. If a script misbehaves, the manual equivalent is:
+The installer, launcher, stop script and verification wrapper were executed on Windows hosted runners
+on 2026-11-17 in both Windows PowerShell 5.1 and PowerShell 7, using Python 3.12 and Node.js 22.
+The smoke test checks the built UI, HTTP health, background worker, WinVaultKeyring backend, and
+the verification report and exit code on an empty installation. See the
+[Windows workflow](../.github/workflows/windows.yml) and
+[successful run](https://github.com/otey247/starindex/actions/runs/44021627972).
+Interactive browser sign-in, GPU execution, and Task Scheduler registration still need checks on
+the target machine. If a script misbehaves, the manual equivalent is:
 
 ```powershell
-py -3 -m venv .venv
+python -m venv .venv
 .venv\Scripts\python -m pip install -e .
 cd frontend; npm ci; npm run build; cd ..
 .venv\Scripts\python -m starindex.cli serve --open

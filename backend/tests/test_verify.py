@@ -87,6 +87,17 @@ def test_unembedded_repository_is_not_a_pass(verifier, monkeypatch):
     assert verifier.exit_code() == 2
 
 
+def test_resolving_citations_do_not_establish_factual_correctness(verifier, monkeypatch):
+    report = {
+        "answer_md": "Qdrant's 35,598 stars exceed Milvus's 46,676 stars. [E1][E2]",
+        "evidence": [{"ref": "E1"}, {"ref": "E2"}], "unsupported": [], "warnings": [],
+    }
+    monkeypatch.setattr(verifier, "stream", lambda *args: [("done", {"report": report})])
+    verifier._generation("Ask", "/api/ask", {}, "local model", 60)
+    assert verifier.checks[0].status == PASS and "citation integrity" in verifier.checks[0].name
+    assert verifier.checks[1].status == MANUAL and verifier.exit_code() == 2
+
+
 @pytest.mark.parametrize("status,code,outcome", [(PASS, 0, "PASSED"), (FAIL, 1, "FAILED"),
                                                 (SKIP, 2, "INCOMPLETE"), (MANUAL, 2, "INCOMPLETE")])
 def test_report_and_exit_code_distinguish_incomplete(verifier, status, code, outcome):
