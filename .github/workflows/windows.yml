@@ -1,0 +1,81 @@
+name: Windows install and launch
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+    env:
+      STARINDEX_SMOKE_SHELL: ${{ matrix.shell }}
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Run the Windows installer
+        shell: pwsh
+        run: |
+          $env:STARINDEX_DATA_DIR = Join-Path $env:RUNNER_TEMP "StarIndex"
+          "STARINDEX_DATA_DIR=$env:STARINDEX_DATA_DIR" >> $env:GITHUB_ENV
+          & $env:STARINDEX_SMOKE_SHELL -NoProfile -ExecutionPolicy Bypass -File scripts\install.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Installer exited with $LASTEXITCODE" }
+      - name: Launch, verify HTTP and worker, then stop
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $shellExe = (Get-Command $env:STARINDEX_SMOKE_SHELL).Source
+          $stdout = Join-Path $env:RUNNER_TEMP "starindex-start.stdout.log"
+          $stderr = Join-Path $env:RUNNER_TEMP "starindex-start.stderr.log"
+          $launcher = Start-Process -FilePath $shellExe -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts\start.ps1", "-NoBrowser", "-Port", "18765") -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+          try {
+              $deadline = (Get-Date).AddSeconds(90)
+              $health = $null
+              while ((Get-Date) -lt $deadline) {
+                  if ($launcher.HasExited) { throw "Launcher exited with $($launcher.ExitCode)" }
+                  try { $health = Invoke-RestMethod "http://127.0.0.1:18765/api/health" -TimeoutSec 3 } catch {}
+                  if ($health.status -eq "ok") { break }
+                  Start-Sleep -Seconds 1
+              }
+              if ($health.status -ne "ok") { throw "Application did not become healthy" }
+              $page = Invoke-WebRequest "http://127.0.0.1:18765/" -UseBasicParsing
+              if ($page.Content -notmatch "<title>StarIndex</title>") { throw "Built UI was not served" }
+              $status = Invoke-RestMethod "http://127.0.0.1:18765/api/system/status"
+              if (-not $status.worker.alive) { throw "Background worker is not alive" }
+              if ($status.secret_backend -notlike "keyring*") { throw "Windows Credential Manager backend unavailable" }
+              $status | ConvertTo-Json -Depth 10
+              & $shellExe -NoProfile -ExecutionPolicy Bypass -File scripts\verify.ps1 -Port 18765 -WaitMinutes 0.1
+              if ($LASTEXITCODE -ne 2) { throw "Empty installation should verify as incomplete (exit 2), got $LASTEXITCODE" }
+              $report = Get-Content (Join-Path $env:STARINDEX_DATA_DIR "verification-report.md") -Raw
+              if ($report -notmatch "INCOMPLETE") { throw "Missing incomplete verification report" }
+          } finally {
+              & .\scripts\stop.ps1 -Port 18765
+              if (-not $launcher.WaitForExit(15000)) { Stop-Process -Id $launcher.Id -Force }
+              Get-Content $stdout -ErrorAction SilentlyContinue
+              Get-Content $stderr -ErrorAction SilentlyContinue
+          }
+          exit 0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-${{ matrix.shell }}-logs
+          path: |
+            ${{ runner.temp }}/starindex-start.*.log
+            ${{ runner.temp }}/StarIndex/logs/
+            ${{ runner.temp }}/StarIndex/verification-report.md

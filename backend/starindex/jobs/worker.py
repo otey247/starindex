@@ -108,12 +108,16 @@ class Worker:
         self._threads.append(t)
         log.info("worker started (%s, %d threads)", self.mode, self.concurrency)
 
-    def stop(self, timeout: float = 10.0) -> None:
-        """Stop taking work. In-flight jobs keep their checkpoint and resume on next start."""
+    def stop(self, timeout: float | None = None) -> None:
+        """Stop taking work and wait for a safe checkpoint before resources are closed.
+
+        Native embedding inference cannot be interrupted mid-batch. The default waits for
+        it to return; callers supplying a timeout must keep the context alive afterwards.
+        """
         self._stop.set()
-        deadline = time.monotonic() + timeout
+        deadline = time.monotonic() + timeout if timeout is not None else None
         for t in self._threads:
-            t.join(max(0.0, deadline - time.monotonic()))
+            t.join(max(0.0, deadline - time.monotonic()) if deadline is not None else None)
         self.ctx.worker_mode = "none"
 
     def run_forever(self) -> None:

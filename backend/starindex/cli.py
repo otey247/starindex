@@ -242,7 +242,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--research", action="store_true", help="Also run a research request with the default local model (slow).")
     p.add_argument("--query", default="vector database", help="Query used for the search checks.")
     p.add_argument("--question", default="Which of my starred repositories help with semantic search? Name them and say why.")
-    p.add_argument("--wait-minutes", type=float, default=30, help="How long --sync waits for the starred list.")
+    p.add_argument("--wait-minutes", type=float, default=30, help="Total time --sync waits for discovery, indexing and embeddings.")
     p.add_argument("--report", help="Where to write the Markdown report (default: the data directory).")
     p.set_defaults(fn=cmd_verify)
 

@@ -115,7 +115,7 @@ class GenerationRequest(BaseModel):
     # and the caller parses the text with ``parse_json_output``.
     json_schema: dict[str, Any] | None = None
     json_schema_name: str = "result"
-    timeout_s: float = 180.0
+    timeout_s: float | None = None       # inherit the provider's configured timeout unless overridden
 
 
 class Usage(BaseModel):

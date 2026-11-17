@@ -22,7 +22,8 @@ PRIORITY = {
     "sync_incremental": 10,
     "refresh_metadata": 20,
     "index_repo": 50,
-    "embed_pending": 60,
+    # Let semantic search become usable while a large documentation import is still running.
+    "embed_pending": 45,
     "classify_repos": 70,
     "rebuild_search_index": 30,
     "rebuild_vector_index": 40,
@@ -131,6 +132,10 @@ class JobQueue:
                     "SELECT id FROM jobs WHERE dedupe_key=? AND status IN ('queued','running')", (dedupe_key,)
                 ).fetchone()
                 if row:
+                    if priority is not None:
+                        # An interactive request can promote work already queued by a bulk sync.
+                        c.execute("UPDATE jobs SET priority=min(priority, ?) WHERE id=? AND status='queued'",
+                                  (prio, row["id"]))
                     return row["id"]
             cur = c.execute(
                 "INSERT INTO jobs(type, payload, priority, dedupe_key, max_attempts, run_after, created_at) "

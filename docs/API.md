@@ -113,6 +113,7 @@ Search query operators (parsed server-side, reported in `SearchResponse.parsed.o
 | POST | `/sync/cancel` | | `Ok` |
 | GET | `/sync/runs?limit=20` | | `SyncRun[]` |
 | GET | `/jobs?status=&type=&limit=&offset=` | | `JobPage` |
+| GET | `/jobs/{id}` | | `Job` (404 when absent) |
 | POST | `/jobs` | `JobEnqueue` | `Job` |
 | POST | `/jobs/{id}/retry` | | `Job` |
 | POST | `/jobs/{id}/cancel` | | `Job` |

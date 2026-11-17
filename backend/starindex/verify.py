@@ -61,7 +61,10 @@ class Verifier:
                 if line.startswith("event:"):
                     name = line[6:].strip()
                 elif line.startswith("data:"):
-                    events.append((name, json.loads(line[5:])))
+                    data = json.loads(line[5:])
+                    events.append((name, data))
+                    if name in ("status", "step"):
+                        print(f"  {data.get('message') or data.get('title') or name}", flush=True)
         return events
 
     # -- checks -----------------------------------------------------------------------------
@@ -95,6 +98,9 @@ class Verifier:
         cuda = "CUDAExecutionProvider" in hw.get("onnx_providers", [])
         self.add("Hardware", "GPU embeddings (ONNX Runtime CUDA)", PASS if cuda else SKIP,
                  "available" if cuda else "CPU build installed; run scripts\\install.ps1 -Gpu to enable")
+        self.add("Hardware", "GPU embedding execution and throughput", MANUAL if cuda else SKIP,
+                 "Run an embedding workload on the GPU and measure throughput; provider availability alone is not execution evidence."
+                 if cuda else "No CUDA execution provider is available; a GPU workload was not run.")
         return True
 
     def github(self, do_sync: bool, wait_minutes: float) -> None:
@@ -106,13 +112,40 @@ class Verifier:
         if not auth["ok"]:
             return
         if do_sync:
-            self.post("/api/sync/start", {"kind": "full"})
-            deadline = time.time() + wait_minutes * 60
-            while time.time() < deadline:
+            job = self.post("/api/sync/start", {"kind": "full"})
+            if job["type"] != "sync_full":
+                self.add("GitHub", "Requested full synchronisation", FAIL,
+                         "Another synchronisation is already active. Wait for it to finish, then verify again.")
+                return
+            deadline = time.monotonic() + wait_minutes * 60
+            # Follow the job we requested, rather than accepting an older successful run.
+            while True:
+                job = self.get(f"/api/jobs/{job['id']}")
+                if job["status"] == "succeeded":
+                    break
+                if job["status"] in ("failed", "cancelled"):
+                    self.add("GitHub", "Requested full synchronisation", FAIL,
+                             f"Job {job['id']} {job['status']}: {job.get('error') or 'no result'}")
+                    return
+                if time.monotonic() >= deadline:
+                    self.add("GitHub", "Requested full synchronisation", FAIL,
+                             f"Timed out after {wait_minutes:g} minutes; job {job['id']} is {job['status']}. It can resume in the app.")
+                    return
+                time.sleep(3)
+            # Discovery enqueues indexing and embeddings. Wait for that work as well.
+            while True:
                 st = self.get("/api/sync/status")
-                if st["current_run"] is None and st["last_full"] and not st["queue"]["by_type"].get("sync_full", {}).get("queued"):
-                    if not st["queue"]["by_type"].get("sync_full", {}).get("running"):
-                        break
+                idx = st["index"]
+                by_type = st["queue"]["by_type"]
+                pending = idx["pending"] + idx["queued"] + idx["indexing"]
+                active = any(by_type.get(kind, {}).get(state, 0)
+                             for kind in ("index_repo", "embed_pending") for state in ("queued", "running"))
+                if not pending and not active:
+                    break
+                if time.monotonic() >= deadline:
+                    self.add("Indexing", "Wait for indexing and embeddings", FAIL,
+                             f"Timed out after {wait_minutes:g} minutes; {pending} repositories unfinished. Work continues in the app.")
+                    break
                 time.sleep(3)
         st = self.get("/api/sync/status")
         last = st["last_full"]
@@ -126,9 +159,11 @@ class Verifier:
         idx = st["index"]
         self.add("GitHub", "Library size", PASS if idx["total"] > 0 else FAIL, f"{idx['total']} starred repositories stored")
         pending = idx["pending"] + idx["queued"] + idx["indexing"]
-        self.add("Indexing", "Documentation indexing", PASS if idx["failed"] == 0 and pending == 0 else (FAIL if idx["failed"] else SKIP),
+        self.add("Indexing", "Documentation indexing", PASS if idx["failed"] == 0 and pending == 0 else (FAIL if idx["failed"] or do_sync else SKIP),
                  f"{idx['indexed']} indexed, {pending} in progress, {idx['failed']} failed, {idx['skipped']} skipped; {idx['documents']} documents, {idx['chunks']} passages")
-        self.add("Indexing", "Embeddings", PASS if idx["chunks"] and idx["chunks_embedded"] == idx["chunks"] else SKIP,
+        embedded = (idx["chunks"] > 0 and idx["chunks_embedded"] == idx["chunks"]
+                    and idx["repos_embedded"] == idx["total"])
+        self.add("Indexing", "Embeddings", PASS if embedded else SKIP,
                  f"{idx['chunks_embedded']} of {idx['chunks']} passages, {idx['repos_embedded']} of {idx['total']} repositories embedded")
         if st["queue"]["failed"]:
             self.add("Indexing", "Failed jobs", FAIL, f"{st['queue']['failed']} failed job(s); see the Sync page")
@@ -167,6 +202,8 @@ class Verifier:
             enabled = [a for a in accounts if a["plan_usage_enabled"]]
             self.add("Models", "ChatGPT plan", PASS if enabled else FAIL,
                      f"signed in as {accounts[0].get('email') or accounts[0]['label']}; plan usage {'granted' if enabled else 'NOT granted'}")
+            self.add("Models", "ChatGPT live inference", MANUAL,
+                     "Sign-in status alone does not verify inference. Run a real ChatGPT plan request in the app and inspect the result.")
         active = self.get("/api/model-options")["active"]
         if not active["configured"]:
             self.add("Ask", "Grounded answer", MANUAL, "No default model is set (Settings → Models → Routing).")
@@ -202,7 +239,10 @@ class Verifier:
             detail += f", {report['data']['limits']['tool_calls_used']} tool calls"
         if report["warnings"]:
             detail += "; warnings: " + " | ".join(report["warnings"])
-        self.add(area, f"{area} with {label}", PASS if ok else FAIL, detail)
+        self.add(area, f"{area} citation integrity with {label}", PASS if ok else FAIL, detail)
+        if ok:
+            self.add(area, "Factual support review", MANUAL,
+                     "Citation identifiers resolve, but that does not establish that claims, numbers or comparisons agree with the evidence. Review the stored report and its sources.")
 
     def mcp(self) -> None:
         def rpc(method: str, params: dict[str, Any] | None = None, msg_id: int = 1) -> dict[str, Any]:
@@ -230,16 +270,22 @@ class Verifier:
 
     def report(self) -> str:
         counts = {s: sum(1 for c in self.checks if c.status == s) for s in (PASS, FAIL, SKIP, MANUAL)}
+        outcome = "FAILED" if counts[FAIL] else ("INCOMPLETE" if counts[SKIP] or counts[MANUAL] else "PASSED")
         lines = [
             "# StarIndex verification report", "",
             f"Generated {time.strftime('%Y-%m-%d %H:%M:%S')} on {platform.system()} {platform.release()} "
             f"(Python {platform.python_version()}, StarIndex {__version__}) against {self.base}.", "",
-            f"**{counts[PASS]} passed, {counts[FAIL]} failed, {counts[SKIP]} skipped, {counts[MANUAL]} need a manual step.**", "",
+            f"**{outcome}: {counts[PASS]} passed, {counts[FAIL]} failed, {counts[SKIP]} skipped, {counts[MANUAL]} need a manual step.**", "",
             "| Area | Check | Result | Detail |", "|---|---|---|---|",
         ]
         for c in self.checks:
             lines.append(f"| {c.area} | {c.name} | {c.status} | {c.detail.replace('|', '/').replace(chr(10), ' ')} |")
         return "\n".join(lines) + "\n"
+
+    def exit_code(self) -> int:
+        if any(c.status == FAIL for c in self.checks):
+            return 1
+        return 2 if any(c.status in (SKIP, MANUAL) for c in self.checks) else 0
 
 
 def run(base_url: str, token: str | None, *, sync: bool, research: bool, query: str, question: str, report_path: Path, wait_minutes: float) -> int:
@@ -252,4 +298,5 @@ def run(base_url: str, token: str | None, *, sync: bool, research: bool, query: 
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(v.report(), encoding="utf-8")
     print(f"\nReport written to {report_path}")
-    return 1 if any(c.status == FAIL for c in v.checks) else 0
+    v.http.close()
+    return v.exit_code()
