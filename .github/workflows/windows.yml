@@ -16,9 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         shell: [powershell, pwsh]
-    defaults:
-      run:
-        shell: ${{ matrix.shell }}
     env:
       STARINDEX_DATA_DIR: ${{ runner.temp }}\StarIndex
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
@@ -33,10 +30,12 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Run the Windows installer
+        shell: ${{ matrix.shell }}
         run: |
           & .\scripts\install.ps1
           if ($LASTEXITCODE -ne 0) { throw "Installer exited with $LASTEXITCODE" }
       - name: Launch, verify HTTP and worker, then stop
+        shell: ${{ matrix.shell }}
         run: |
           $ErrorActionPreference = "Stop"
           $shellExe = (Get-Process -Id $PID).Path
