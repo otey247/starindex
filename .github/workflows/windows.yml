@@ -60,12 +60,17 @@ jobs:
               if (-not $status.worker.alive) { throw "Background worker is not alive" }
               if ($status.secret_backend -notlike "keyring*") { throw "Windows Credential Manager backend unavailable" }
               $status | ConvertTo-Json -Depth 10
+              & $shellExe -NoProfile -ExecutionPolicy Bypass -File scripts\verify.ps1 -Port 18765 -WaitMinutes 0.1
+              if ($LASTEXITCODE -ne 2) { throw "Empty installation should verify as incomplete (exit 2), got $LASTEXITCODE" }
+              $report = Get-Content (Join-Path $env:STARINDEX_DATA_DIR "verification-report.md") -Raw
+              if ($report -notmatch "INCOMPLETE") { throw "Missing incomplete verification report" }
           } finally {
               & .\scripts\stop.ps1 -Port 18765
               if (-not $launcher.WaitForExit(15000)) { Stop-Process -Id $launcher.Id -Force }
               Get-Content $stdout -ErrorAction SilentlyContinue
               Get-Content $stderr -ErrorAction SilentlyContinue
           }
+          exit 0
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -73,3 +78,4 @@ jobs:
           path: |
             ${{ runner.temp }}/starindex-start.*.log
             ${{ runner.temp }}/StarIndex/logs/
+            ${{ runner.temp }}/StarIndex/verification-report.md
