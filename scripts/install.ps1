@@ -28,8 +28,8 @@ Set-Location $Root
 
 function Find-Python {
     $candidates = @(
-        @{ Exe = "py"; Extra = @("-3") },
         @{ Exe = "python"; Extra = @() },
+        @{ Exe = "py"; Extra = @("-3") },
         @{ Exe = "python3"; Extra = @() }
     )
     foreach ($candidate in $candidates) {
@@ -59,6 +59,7 @@ if (-not $python) {
 }
 $pythonExtra = $python.Extra
 Write-Host ("Using Python: " + $python.Exe + " " + ($pythonExtra -join " "))
+& $python.Exe @pythonExtra --version
 
 $venvPython = Join-Path $Root ".venv\Scripts\python.exe"
 if (-not (Test-Path $venvPython)) {
@@ -69,9 +70,10 @@ if (-not (Test-Path $venvPython)) {
 
 Write-Host "Installing Python dependencies (this downloads about 300 MB the first time) ..."
 & $venvPython -m pip install --upgrade pip --quiet
+if ($LASTEXITCODE -ne 0) { throw "Upgrading pip failed." }
 $target = "."
 if ($SentenceTransformers) { $target = ".[sentence-transformers]" }
-& $venvPython -m pip install -e $target --quiet
+& $venvPython -m pip install -e $target
 if ($LASTEXITCODE -ne 0) { throw "Installing Python dependencies failed." }
 
 if ($Gpu) {

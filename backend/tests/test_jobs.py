@@ -57,6 +57,14 @@ def test_embeddings_are_not_starved_by_documentation_backlog(ctx):
     assert ctx.jobs.claim("documentation").type == "index_repo"
 
 
+def test_interactive_index_request_promotes_existing_background_job(ctx):
+    first = ctx.jobs.enqueue("index_repo", {"repo_id": 1}, dedupe_key="index:1")
+    requested = ctx.jobs.enqueue("index_repo", {"repo_id": 2}, dedupe_key="index:2")
+    assert ctx.jobs.enqueue("index_repo", {"repo_id": 2}, dedupe_key="index:2", priority=20) == requested
+    assert ctx.jobs.claim("interactive").id == requested
+    assert ctx.jobs.claim("background").id == first
+
+
 def test_handler_checkpoint_survives_a_crash(ctx):
     seen: list[dict] = []
 
