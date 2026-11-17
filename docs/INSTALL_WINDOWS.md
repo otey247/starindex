@@ -93,6 +93,13 @@ all three modes, every configured model provider, a cited answer from the defaul
 (`-Research` adds a research run), ChatGPT plan status, GPU detection and the MCP endpoints. The result is
 printed and saved as `verification-report.md` in the data directory.
 
+`--sync` waits for the requested full-sync job and its indexing and embedding work, sharing a
+30-minute deadline (change it with `starindex verify --sync --wait-minutes 120`). A timeout fails
+verification and leaves the background work running. Exit codes are **0** for all checks passed,
+**1** for a failure, and **2** for incomplete verification (skipped checks or manual steps).
+GPU-provider detection does not prove GPU embedding execution, and a stored ChatGPT sign-in does
+not prove live inference; the report calls out those outstanding checks explicitly.
+
 ## Run in the background at sign-in
 
 Scheduled synchronisation, indexing and backups run inside StarIndex, so it only has to be running:

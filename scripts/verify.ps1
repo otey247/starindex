@@ -15,7 +15,9 @@
 param(
     [int]$Port = 8765,
     [switch]$Sync,
-    [switch]$Research
+    [switch]$Research,
+    [ValidateRange(0.01, 10080)]
+    [double]$WaitMinutes = 30
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,7 +53,7 @@ if (-not (Test-Running)) {
     }
 }
 
-$arguments = @("-m", "starindex.cli", "verify", "--url", $url)
+$arguments = @("-m", "starindex.cli", "verify", "--url", $url, "--wait-minutes", $WaitMinutes.ToString([System.Globalization.CultureInfo]::InvariantCulture))
 if ($Sync) { $arguments += "--sync" }
 if ($Research) { $arguments += "--research" }
 Set-Location $Root

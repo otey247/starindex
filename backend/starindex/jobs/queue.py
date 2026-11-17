@@ -22,7 +22,8 @@ PRIORITY = {
     "sync_incremental": 10,
     "refresh_metadata": 20,
     "index_repo": 50,
-    "embed_pending": 60,
+    # Let semantic search become usable while a large documentation import is still running.
+    "embed_pending": 45,
     "classify_repos": 70,
     "rebuild_search_index": 30,
     "rebuild_vector_index": 40,

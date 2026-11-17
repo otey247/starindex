@@ -187,6 +187,14 @@ def clear_finished(ctx: AppContext = Depends(get_ctx)) -> Ok:
     return Ok(message=f"Removed {ctx.jobs.clear_finished()} finished job(s).")
 
 
+@router.get("/jobs/{job_id}", response_model=Job)
+def get_job(job_id: int, ctx: AppContext = Depends(get_ctx)) -> Job:
+    record = ctx.jobs.get(job_id)
+    if record is None:
+        raise not_found("Job")
+    return job_to_schema(ctx, record)
+
+
 @router.post("/jobs/{job_id}/retry", response_model=Job)
 def retry(job_id: int, ctx: AppContext = Depends(get_ctx)) -> Job:
     if ctx.jobs.get(job_id) is None:

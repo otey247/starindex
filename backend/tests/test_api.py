@@ -205,6 +205,8 @@ def test_jobs_schedules_storage_and_export(client, ctx):
     sync(ctx)
     jobs = client.get("/api/jobs?type=index_repo&limit=3").json()
     assert jobs["total"] == 14 and jobs["items"][0]["repo_full_name"]
+    assert client.get(f"/api/jobs/{jobs['items'][0]['id']}").json() == jobs["items"][0]
+    assert client.get("/api/jobs/999999999").status_code == 404
     schedules = client.get("/api/schedules").json()
     assert {s["name"] for s in schedules} == {"incremental_sync", "full_sync", "backup", "cleanup"}
     patched = client.patch("/api/schedules/incremental_sync", json={"interval_minutes": 60, "enabled": False}).json()

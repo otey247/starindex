@@ -47,6 +47,16 @@ def test_expired_lease_is_taken_over_and_old_worker_cannot_clobber(ctx):
     assert q.owns(job_id, "new-worker") and not q.owns(job_id, "dead-worker")
 
 
+def test_embeddings_are_not_starved_by_documentation_backlog(ctx):
+    for i in range(100):
+        ctx.jobs.enqueue("index_repo", {"repo_id": i})
+    embeddings = ctx.jobs.enqueue("embed_pending")
+    sync = ctx.jobs.enqueue("sync_full")
+    assert ctx.jobs.claim("discovery").id == sync
+    assert ctx.jobs.claim("semantic-search").id == embeddings
+    assert ctx.jobs.claim("documentation").type == "index_repo"
+
+
 def test_handler_checkpoint_survives_a_crash(ctx):
     seen: list[dict] = []
 
